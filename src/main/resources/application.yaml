@@ -1,3 +1,11 @@
+cors:
+  originPatterns: http://localhost:8080,http://localhost:3000
+security:
+  jwt:
+    private:
+      key: classpath:keys/priv.pem
+    public:
+      key: classpath:keys/pub.pem
 spring:
   application:
     name: trello-clone
