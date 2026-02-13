@@ -1,11 +1,19 @@
+cors:
+  originPatterns: http://localhost:8080,http://localhost:3000
+security:
+  jwt:
+    private:
+      key: classpath:keys/priv.pem
+    public:
+      key: classpath:keys/pub.pem
 spring:
   application:
     name: trello-clone
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: ${DB_URL}
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
+    url: jdbc:postgresql://localhost:5432/trello_clone
+    username: postgres
+    password: 123456
   jpa:
     hibernate:
       ddl-auto: none
