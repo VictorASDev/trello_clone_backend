@@ -3,9 +3,9 @@ cors:
 security:
   jwt:
     private:
-      key: classpath:keys/priv.pem
+      key: ${JWT_PRIVATE_KEY}
     public:
-      key: classpath:keys/pub.pem
+      key: ${JWT_PUBLIC_KEY}
 server:
   port: ${PORT:8080}
 spring:
