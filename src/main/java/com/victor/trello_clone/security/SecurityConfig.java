@@ -31,20 +31,22 @@ import java.util.Base64;
 @EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfig {
+
     @Value("${security.jwt.private.key}")
-    private Resource privateKeyResource;
+    private String privateKeyValue;
 
     @Value("${security.jwt.public.key}")
-    private Resource publicKeyResource;
+    private String publicKeyValue;
+
 
     @Bean
     public RSAPrivateKey privateKey() throws Exception {
-        return loadPrivateKey(privateKeyResource);
+        return loadPrivateKey(privateKeyValue);
     }
 
     @Bean
     public RSAPublicKey publicKey() throws Exception {
-        return loadPublicKey(publicKeyResource);
+        return loadPublicKey(publicKeyValue);
     }
 
     @Bean
@@ -96,30 +98,6 @@ public class SecurityConfig {
                 .build();
     }
 
-    private RSAPrivateKey loadPrivateKey(Resource resource) throws Exception {
-        String key = new String(resource.getInputStream().readAllBytes())
-                .replace("-----BEGIN PRIVATE KEY-----", "")
-                .replace("-----END PRIVATE KEY-----", "")
-                .replaceAll("\\s", "");
-
-        byte[] decoded = Base64.getDecoder().decode(key);
-        var spec = new PKCS8EncodedKeySpec(decoded);
-        var factory = KeyFactory.getInstance("RSA");
-        return (RSAPrivateKey) factory.generatePrivate(spec);
-    }
-
-    private RSAPublicKey loadPublicKey(Resource resource) throws Exception {
-        String key = new String(resource.getInputStream().readAllBytes())
-                .replace("-----BEGIN PUBLIC KEY-----", "")
-                .replace("-----END PUBLIC KEY-----", "")
-                .replaceAll("\\s", "");
-
-        byte[] decoded = Base64.getDecoder().decode(key);
-        var spec = new X509EncodedKeySpec(decoded);
-        var factory = KeyFactory.getInstance("RSA");
-        return (RSAPublicKey) factory.generatePublic(spec);
-    }
-
     @Bean
     public JwtAuthenticationConverter jwtAuthenticationConverter() {
         JwtGrantedAuthoritiesConverter authoritiesConverter =
@@ -134,4 +112,29 @@ public class SecurityConfig {
 
         return jwtConverter;
     }
+
+    private RSAPrivateKey loadPrivateKey(String key) throws Exception {
+        key = key
+                .replace("-----BEGIN PRIVATE KEY-----", "")
+                .replace("-----END PRIVATE KEY-----", "")
+                .replaceAll("\\s", "");
+
+        byte[] decoded = Base64.getDecoder().decode(key);
+        var spec = new PKCS8EncodedKeySpec(decoded);
+        var factory = KeyFactory.getInstance("RSA");
+        return (RSAPrivateKey) factory.generatePrivate(spec);
+    }
+
+    private RSAPublicKey loadPublicKey(String key) throws Exception {
+        key = key
+                .replace("-----BEGIN PUBLIC KEY-----", "")
+                .replace("-----END PUBLIC KEY-----", "")
+                .replaceAll("\\s", "");
+
+        byte[] decoded = Base64.getDecoder().decode(key);
+        var spec = new X509EncodedKeySpec(decoded);
+        var factory = KeyFactory.getInstance("RSA");
+        return (RSAPublicKey) factory.generatePublic(spec);
+    }
+
 }
