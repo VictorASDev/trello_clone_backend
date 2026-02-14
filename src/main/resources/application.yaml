@@ -6,6 +6,8 @@ security:
       key: classpath:keys/priv.pem
     public:
       key: classpath:keys/pub.pem
+server:
+  port: ${PORT:8080}
 spring:
   application:
     name: trello-clone
