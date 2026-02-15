@@ -35,11 +35,14 @@ public class User {
     @Column(name = "role")
     private Set<Role> roles = new HashSet<>();
 
-    @Column(nullable = false, updatable = false)
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    @Column(nullable = false)
+    @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
+
+    @Column(name = "email_verified", nullable = false)
+    private boolean emailVerified = false;
 
     @PrePersist
     public void onCreate() {
@@ -106,6 +109,14 @@ public class User {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public boolean isEmailVerified() {
+        return emailVerified;
+    }
+
+    public void setEmailVerified(boolean emailVerified) {
+        this.emailVerified = emailVerified;
     }
 
     @Override

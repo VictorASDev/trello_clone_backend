@@ -37,6 +37,7 @@ public class AuthController {
     public ResponseEntity<AccessTokenResponse> signIn(
             @RequestBody AuthRequest request,
             HttpServletResponse response) throws CredentialException {
+
         var tokens = authService.generateTokens(request);
 
         ResponseCookie refreshCookie = ResponseCookie.from("refresh_token", tokens.refreshToken())
