@@ -34,7 +34,7 @@ public class AuthController {
     }
 
     @PostMapping("/signin")
-    public ResponseEntity<Void> signIn(
+    public ResponseEntity<AccessTokenResponse> signIn(
             @RequestBody AuthRequest request,
             HttpServletResponse response) throws CredentialException {
 
@@ -50,17 +50,11 @@ public class AuthController {
 
         response.addHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
 
-        ResponseCookie accessToken = ResponseCookie.from("access_token", tokens.refreshToken())
-                .httpOnly(true)
-                .secure(false) //trocar pra true em prod
-                .path("/api")
-                .maxAge(Duration.ofDays(7))
-                .sameSite("Strict")
-                .build();
 
-        response.addHeader(HttpHeaders.SET_COOKIE, accessToken.toString());
 
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(
+                new AccessTokenResponse(tokens.accessToken(), tokens.accessExpiresIn())
+        );
     }
 
     @GetMapping("/refresh")

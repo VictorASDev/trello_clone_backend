@@ -106,9 +106,15 @@ public class SecurityConfig {
         authoritiesConverter.setAuthoritiesClaimName("roles");
         authoritiesConverter.setAuthorityPrefix("ROLE_");
 
-        JwtAuthenticationConverter jwtConverter =
-                new JwtAuthenticationConverter();
-        jwtConverter.setJwtGrantedAuthoritiesConverter(authoritiesConverter);
+        JwtAuthenticationConverter jwtConverter = new JwtAuthenticationConverter();
+        jwtConverter.setJwtGrantedAuthoritiesConverter(jwt -> {
+            String type = jwt.getClaim("type");
+            if (!"access".equals(type)) {
+                throw new RuntimeException("Token type is not access!");
+            }
+
+            return authoritiesConverter.convert(jwt);
+        });
 
         return jwtConverter;
     }
@@ -117,7 +123,9 @@ public class SecurityConfig {
         key = key
                 .replace("-----BEGIN PRIVATE KEY-----", "")
                 .replace("-----END PRIVATE KEY-----", "")
-                .replaceAll("\\s", "");
+                .replaceAll("\\s", "")
+                .replace("\\n", "")
+                .replace("\n", "");
 
         byte[] decoded = Base64.getDecoder().decode(key);
         var spec = new PKCS8EncodedKeySpec(decoded);
@@ -129,7 +137,9 @@ public class SecurityConfig {
         key = key
                 .replace("-----BEGIN PUBLIC KEY-----", "")
                 .replace("-----END PUBLIC KEY-----", "")
-                .replaceAll("\\s", "");
+                .replaceAll("\\s", "")
+                .replace("\\n", "")
+                .replace("\n", "");
 
         byte[] decoded = Base64.getDecoder().decode(key);
         var spec = new X509EncodedKeySpec(decoded);
