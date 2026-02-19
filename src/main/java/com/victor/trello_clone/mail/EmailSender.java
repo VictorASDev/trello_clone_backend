@@ -29,10 +29,10 @@ public class EmailSender {
 
        try {
            MimeMessageHelper helper = new MimeMessageHelper(message, true);
-           helper.setFrom(config.getFrom());
+           helper.setFrom(config.getUsername());
            helper.setTo(to);
            helper.setSubject(subject);
-           helper.setText(body);
+           helper.setText(body, true);
 
            if (attachment != null)
                helper.addAttachment(attachment.getName(), attachment);

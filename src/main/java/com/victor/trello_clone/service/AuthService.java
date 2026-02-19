@@ -121,7 +121,7 @@ public class AuthService {
         JwtClaimsSet claims = JwtClaimsSet.builder()
                 .issuer(ISSUER)
                 .issuedAt(now)
-                .expiresAt(now.plusSeconds(600))
+                .expiresAt(now.plusSeconds(86400))
                 .subject(user.getId().toString())
                 .claim("type", "email_verification")
                 .build();
@@ -143,14 +143,12 @@ public class AuthService {
 
         UUID userId = UUID.fromString(jwt.getSubject());
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() ->
-                        new EntityNotFoundException("User not found")
-                );
+        User user = userRepository.findById(userId).orElseThrow(() ->
+                        new EntityNotFoundException("User not found"));
 
         if (user.isEmailVerified()) {
             throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST,
+                    HttpStatus.CONFLICT,
                     "Email already verified"
             );
         }
