@@ -1,8 +1,6 @@
 package com.victor.trello_clone.controller;
 
-import com.victor.trello_clone.data.record.AccessTokenResponse;
-import com.victor.trello_clone.data.record.AuthRequest;
-import com.victor.trello_clone.data.record.SignUpRequest;
+import com.victor.trello_clone.data.record.*;
 import com.victor.trello_clone.service.AuthService;
 import com.victor.trello_clone.service.UserService;
 import jakarta.servlet.http.HttpServletResponse;
@@ -13,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.security.auth.login.CredentialException;
 import java.time.Duration;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -28,7 +27,7 @@ public class AuthController {
 
     @PostMapping("/signup")
     public ResponseEntity<Void> signUp(@RequestBody SignUpRequest request) {
-        userService.create(request);
+        authService.signUp(request);
 
         return ResponseEntity.noContent().build();
     }
@@ -61,5 +60,23 @@ public class AuthController {
     public ResponseEntity<AccessTokenResponse> refreshToken(
             @CookieValue(value = "refresh_token") String refreshToken) {
         return ResponseEntity.ok(authService.refreshToken(refreshToken));
+    }
+
+    @PostMapping("/send/token")
+    public ResponseEntity<?> sendVerification(@RequestBody ValidateEmailRequest req) {
+
+        authService.sendVerificationEmail(req.userEmail());
+
+        return ResponseEntity.ok(
+                Map.of("message",
+                        "Se o email existir, enviaremos instruções."));
+    }
+
+
+    @PatchMapping("/send/validation")
+    public ResponseEntity<Void> validateEmailToken(@RequestBody TokenRequest request) {
+        authService.validateEmail(request.token());
+
+        return ResponseEntity.ok().build();
     }
 }

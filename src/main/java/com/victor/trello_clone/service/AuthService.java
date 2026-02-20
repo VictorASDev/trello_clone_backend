@@ -1,5 +1,7 @@
 package com.victor.trello_clone.service;
 
+import com.victor.trello_clone.data.record.SignUpRequest;
+import com.victor.trello_clone.mail.EmailSender;
 import com.victor.trello_clone.model.User;
 import com.victor.trello_clone.data.record.AccessTokenResponse;
 import com.victor.trello_clone.repository.UserRepository;
@@ -29,15 +31,21 @@ public class AuthService {
     private final BCryptPasswordEncoder passwordEncoder;
     private final JwtEncoder jwtEncoder;
     private final JwtDecoder jwtDecoder;
+    private final UserService userService;
+    private final EmailSender sender;
 
     public AuthService(UserRepository userRepository,
                        BCryptPasswordEncoder passwordEncoder,
                        JwtEncoder jwtEncoder,
-                       JwtDecoder jwtDecoder) {
+                       JwtDecoder jwtDecoder,
+                       UserService userService,
+                       EmailSender sender) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtEncoder = jwtEncoder;
         this.jwtDecoder = jwtDecoder;
+        this.userService = userService;
+        this.sender = sender;
     }
 
     public TokenResponse generateTokens(AuthRequest request) throws CredentialException {
@@ -155,6 +163,120 @@ public class AuthService {
 
         user.setEmailVerified(true);
         userRepository.save(user);
+    }
+
+    public void sendVerificationEmail(String userEmail) {
+
+        var userOpt = userService.findOptionalByEmail(userEmail);
+
+        if (userOpt.isEmpty()) {
+            return;
+        }
+
+        var user = userOpt.get();
+
+        if (user.isEmailVerified()) {
+            return;
+        }
+
+        if (recentlySent(user)) {
+            return;
+        }
+
+        var emailToken = generateEmailToken(userEmail);
+
+        //TODO: criar variável de ambiente
+        var verificationUrl = "localhost:3000" + "/email-verified?token=" + emailToken;
+
+        var body = buildVerificationEmail(user.getUsername(), verificationUrl);
+
+        sender.send(
+                new String[]{userEmail},
+                "Verificação de Email! - Trello clone",
+                body);
+
+        user.setLastVerificationSentAt(Instant.now());
+        userService.save(user);
+    }
+
+    public void signUp(SignUpRequest request) {
+        userService.create(request);
+        sendVerificationEmail(request.email());
+    }
+
+    private String buildVerificationEmail(String username, String verificationUrl) {
+        return """
+        <!DOCTYPE html>
+               <html>
+               <head>
+                   <meta charset="UTF-8">
+                   <title>Verificação de Conta!</title>
+               </head>
+               <body style="margin:0;padding:0;background:#f4f6f8;font-family:Arial,Helvetica,sans-serif;">
+                   <table width="100%%" cellpadding="0" cellspacing="0" style="padding:40px 0;">
+                       <tr>
+                           <td align="center">
+                               <table width="500" cellpadding="0" cellspacing="0"\s
+                                      style="background:#ffffff;border-radius:8px;padding:40px;">
+        
+                                   <tr>
+                                       <td align="center" style="padding-bottom:20px;">
+                                           <h2 style="margin:0;color:#172B4D;">
+                                               Verifique seu e-mail
+                                           </h2>
+                                       </td>
+                                   </tr>
+        
+                                   <tr>
+                                       <td style="color:#44546F;font-size:14px;line-height:1.6;">
+                                           Olá <b>%s</b>,
+                                           <br><br>
+                                           Obrigado por se cadastrar.
+                                           Confirme seu endereço de e-mail clicando no botão abaixo.
+                                       </td>
+                                   </tr>
+        
+                                   <tr>
+                                       <td align="center" style="padding:30px 0;">
+                                           <a href="%s"
+                                              style="background:#0C66E4;
+                                                     color:#ffffff;
+                                                     text-decoration:none;
+                                                     padding:12px 24px;
+                                                     border-radius:6px;
+                                                     font-weight:bold;
+                                                     display:inline-block;">
+                                               Verificar e-mail
+                                           </a>
+                                       </td>
+                                   </tr>
+        
+                                   <tr>
+                                       <td style="color:#6B778C;font-size:12px;line-height:1.5;">
+                                           Este link expira em 24 horas.
+                                       </td>
+                                   </tr>
+        
+                                   <tr>
+                                       <td align="center" style="padding-top:30px;color:#6B778C;font-size:12px;">
+                                           Trello Clone
+                                       </td>
+                                   </tr>
+        
+                               </table>
+                           </td>
+                       </tr>
+                   </table>
+               </body>
+               </html>
+        """.formatted(username, verificationUrl, verificationUrl);
+    }
+
+    private boolean recentlySent(User user) {
+        if (user.getLastVerificationSentAt() == null) return false;
+
+        return user.getLastVerificationSentAt()
+                .isAfter(Instant.now().minusSeconds(600)); // 10 min
     }
 
 }

@@ -3,6 +3,7 @@ package com.victor.trello_clone.model;
 import com.victor.trello_clone.model.enums.Role;
 import jakarta.persistence.*;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Objects;
@@ -43,6 +44,9 @@ public class User {
 
     @Column(name = "email_verified", nullable = false)
     private boolean emailVerified = false;
+
+    @Column(name = "last_verification_sent_at")
+    private Instant lastVerificationSentAt;
 
     @PrePersist
     public void onCreate() {
@@ -118,6 +122,15 @@ public class User {
     public void setEmailVerified(boolean emailVerified) {
         this.emailVerified = emailVerified;
     }
+
+    public Instant getLastVerificationSentAt() {
+        return lastVerificationSentAt;
+    }
+
+    public void setLastVerificationSentAt(Instant lastVerificationSentAt) {
+        this.lastVerificationSentAt = lastVerificationSentAt;
+    }
+
 
     @Override
     public boolean equals(Object o) {

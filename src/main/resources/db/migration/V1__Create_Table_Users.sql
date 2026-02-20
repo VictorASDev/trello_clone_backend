@@ -6,4 +6,5 @@ CREATE TABLE IF NOT EXISTS users (
     created_at TIMESTAMP NOT NULL,
     updated_at TIMESTAMP,
     email_verified BOOLEAN NOT NULL
+    last_verification_sent_at TIMESTAMP WITH TIME ZONE
 );

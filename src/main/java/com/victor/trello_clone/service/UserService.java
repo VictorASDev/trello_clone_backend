@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.Optional;
 import java.util.Set;
 
 @Service
@@ -49,5 +50,13 @@ public class UserService {
     public User findByEmail(String userEmail) {
         return repository.findByEmail(userEmail)
                 .orElseThrow(() -> new EntityNotFoundException("User not found on data!"));
+    }
+
+    public Optional<User> findOptionalByEmail(String userEmail) {
+        return repository.findByEmail(userEmail);
+    }
+
+    public void save(User user) {
+        repository.save(user);
     }
 }
