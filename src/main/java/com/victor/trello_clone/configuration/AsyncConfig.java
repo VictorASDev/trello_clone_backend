@@ -1,0 +1,9 @@
+package com.victor.trello_clone.configuration;
+
+import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.annotation.EnableAsync;
+
+@Configuration
+@EnableAsync
+public class AsyncConfig {
+}

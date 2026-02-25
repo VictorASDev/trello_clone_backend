@@ -14,6 +14,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 
 @Service
 public class UserService {
@@ -58,5 +59,10 @@ public class UserService {
 
     public void save(User user) {
         repository.save(user);
+    }
+
+    public User findById(UUID id) {
+        return repository.findById(id).orElseThrow(() ->
+                new EntityNotFoundException("User not found"));
     }
 }

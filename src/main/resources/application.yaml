@@ -1,5 +1,11 @@
+app:
+  frontend:
+    url: http://localhost:3000
 cors:
   originPatterns: http://localhost:8080,http://localhost:3000
+logging:
+  level:
+    org.springframework.security: DEBUG
 security:
   jwt:
     private:
