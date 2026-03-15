@@ -1,10 +1,12 @@
-package com.victor.trello_clone.model;
+package com.victor.trello_clone.model.workspace;
 
+import com.victor.trello_clone.model.user.User;
 import jakarta.persistence.*;
 
-import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -24,6 +26,9 @@ public class Workspace {
     @ManyToOne()
     @JoinColumn(name = "owner_id")
     private User owner;
+
+    @OneToMany(mappedBy = "workspace")
+    private Set<WorkspaceMember> members = new HashSet<>();
 
     public UUID getWorkspaceId() {
         return workspaceId;
@@ -57,14 +62,22 @@ public class Workspace {
         this.owner = owner;
     }
 
+    public Set<WorkspaceMember> getMembers() {
+        return members;
+    }
+
+    public void setMembers(Set<WorkspaceMember> members) {
+        this.members = members;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (!(o instanceof Workspace workspace)) return false;
-        return Objects.equals(getWorkspaceId(), workspace.getWorkspaceId()) && Objects.equals(getName(), workspace.getName()) && Objects.equals(getCreatedAt(), workspace.getCreatedAt()) && Objects.equals(getOwner(), workspace.getOwner());
+        return Objects.equals(getWorkspaceId(), workspace.getWorkspaceId()) && Objects.equals(getName(), workspace.getName()) && Objects.equals(getCreatedAt(), workspace.getCreatedAt()) && Objects.equals(getOwner(), workspace.getOwner()) && Objects.equals(getMembers(), workspace.getMembers());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getWorkspaceId(), getName(), getCreatedAt(), getOwner());
+        return Objects.hash(getWorkspaceId(), getName(), getCreatedAt(), getOwner(), getMembers());
     }
 }

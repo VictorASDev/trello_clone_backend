@@ -1,6 +1,6 @@
 package com.victor.trello_clone.repository;
 
-import com.victor.trello_clone.model.User;
+import com.victor.trello_clone.model.user.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

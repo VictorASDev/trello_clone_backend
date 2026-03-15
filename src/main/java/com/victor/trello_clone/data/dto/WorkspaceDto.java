@@ -1,10 +1,13 @@
 package com.victor.trello_clone.data.dto;
 
-import com.victor.trello_clone.model.User;
-import com.victor.trello_clone.model.Workspace;
+import com.victor.trello_clone.model.user.User;
+import com.victor.trello_clone.model.workspace.Workspace;
+import com.victor.trello_clone.model.workspace.WorkspaceMember;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 
 public class WorkspaceDto {
@@ -12,17 +15,23 @@ public class WorkspaceDto {
     public WorkspaceDto() {
     }
 
-    public WorkspaceDto(UUID workspaceId, String name, LocalDateTime createdAt, User owner) {
+    public WorkspaceDto(UUID workspaceId,
+                        String name,
+                        LocalDateTime createdAt,
+                        User owner,
+                        Set<WorkspaceMember> members) {
         this.workspaceId = workspaceId;
         this.name = name;
         this.createdAt = createdAt;
         this.owner = owner;
+        this.members = members;
     }
 
     private UUID workspaceId;
     private String name;
     private LocalDateTime createdAt;
     private User owner;
+    private Set<WorkspaceMember> members = new HashSet<>();
 
     public UUID getWorkspaceId() {
         return workspaceId;
@@ -56,15 +65,23 @@ public class WorkspaceDto {
         this.owner = owner;
     }
 
+    public Set<WorkspaceMember> getMembers() {
+        return members;
+    }
+
+    public void setMembers(Set<WorkspaceMember> members) {
+        this.members = members;
+    }
+
     @Override
     public boolean equals(Object o) {
-        if (!(o instanceof WorkspaceDto workspace)) return false;
-        return Objects.equals(getWorkspaceId(), workspace.getWorkspaceId()) && Objects.equals(getName(), workspace.getName()) && Objects.equals(getCreatedAt(), workspace.getCreatedAt()) && Objects.equals(getOwner(), workspace.getOwner());
+        if (!(o instanceof WorkspaceDto that)) return false;
+        return Objects.equals(getWorkspaceId(), that.getWorkspaceId()) && Objects.equals(getName(), that.getName()) && Objects.equals(getCreatedAt(), that.getCreatedAt()) && Objects.equals(getOwner(), that.getOwner()) && Objects.equals(getMembers(), that.getMembers());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getWorkspaceId(), getName(), getCreatedAt(), getOwner());
+        return Objects.hash(getWorkspaceId(), getName(), getCreatedAt(), getOwner(), getMembers());
     }
 
     public WorkspaceDto toDto(Workspace w) {
@@ -72,7 +89,8 @@ public class WorkspaceDto {
                 w.getWorkspaceId(),
                 w.getName(),
                 w.getCreatedAt(),
-                w.getOwner()
+                w.getOwner(),
+                w.getMembers()
         );
     }
 }

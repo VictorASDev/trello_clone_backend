@@ -1,22 +1,19 @@
 package com.victor.trello_clone.service;
 
 import com.victor.trello_clone.data.record.SignUpRequest;
-import com.victor.trello_clone.mail.EmailSender;
-import com.victor.trello_clone.model.User;
+import com.victor.trello_clone.mail.EmailService;
+import com.victor.trello_clone.model.user.User;
 import com.victor.trello_clone.data.record.AccessTokenResponse;
 import com.victor.trello_clone.repository.UserRepository;
 import com.victor.trello_clone.data.record.AuthRequest;
 import com.victor.trello_clone.data.record.TokenResponse;
 import jakarta.persistence.EntityNotFoundException;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.oauth2.jwt.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import javax.security.auth.login.CredentialException;
 import java.time.Instant;
@@ -29,20 +26,18 @@ public class AuthService {
     private static final long REFRESH_EXPIRES_IN = 7 * 24 * 3600;
     private static final String ISSUER = "trello-clone-api";
 
-    private  final UserRepository userRepository;
     private final BCryptPasswordEncoder passwordEncoder;
     private final JwtEncoder jwtEncoder;
     private final JwtDecoder jwtDecoder;
     private final UserService userService;
     private final EmailService emailService;
 
-    public AuthService(UserRepository userRepository,
-                       BCryptPasswordEncoder passwordEncoder,
-                       JwtEncoder jwtEncoder,
-                       JwtDecoder jwtDecoder,
-                       UserService userService,
-                       EmailService emailService) {
-        this.userRepository = userRepository;
+    public AuthService(
+            BCryptPasswordEncoder passwordEncoder,
+            JwtEncoder jwtEncoder,
+            JwtDecoder jwtDecoder,
+            UserService userService,
+            EmailService emailService) {
         this.passwordEncoder = passwordEncoder;
         this.jwtEncoder = jwtEncoder;
         this.jwtDecoder = jwtDecoder;
@@ -52,8 +47,7 @@ public class AuthService {
 
     public TokenResponse generateTokens(AuthRequest request) throws CredentialException {
 
-        var user = userRepository.findByEmail(request.email())
-                .orElseThrow(() -> new UsernameNotFoundException("User with email " + request.email() + " do not exists!"));
+        var user = userService.findByEmail(request.email());
 
         if (!user.isEmailVerified())
             throw new ResponseStatusException(
@@ -114,8 +108,7 @@ public class AuthService {
 
         UUID userId = UUID.fromString(jwt.getSubject());
 
-        var user = userRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException("User Do Not Exists!"));
+        var user = userService.findById(userId);
 
         String newAccessToken = generateAccessToken(user);
 

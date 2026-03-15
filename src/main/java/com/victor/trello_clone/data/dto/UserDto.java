@@ -1,7 +1,7 @@
 package com.victor.trello_clone.data.dto;
 
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import com.victor.trello_clone.model.enums.Role;
+import com.victor.trello_clone.model.user.Role;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;

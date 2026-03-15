@@ -4,8 +4,7 @@ import com.victor.trello_clone.controller.docs.EmailControllerDocs;
 import com.victor.trello_clone.data.record.EmailRequest;
 import com.victor.trello_clone.data.record.TokenRequest;
 import com.victor.trello_clone.data.record.ValidateEmailRequest;
-import com.victor.trello_clone.service.AuthService;
-import com.victor.trello_clone.service.EmailService;
+import com.victor.trello_clone.mail.EmailService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -38,7 +37,7 @@ public class EmailController implements EmailControllerDocs {
     @Override
     public ResponseEntity<?> sendVerification(@RequestBody ValidateEmailRequest req) {
 
-        service.sendVerificationEmail(req.userEmail());
+        service.sendVerificationEmailAsync(req.userEmail());
 
         return ResponseEntity.ok(
                 Map.of("message",

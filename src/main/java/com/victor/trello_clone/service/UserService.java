@@ -1,7 +1,7 @@
 package com.victor.trello_clone.service;
 
-import com.victor.trello_clone.model.User;
-import com.victor.trello_clone.model.enums.Role;
+import com.victor.trello_clone.model.user.User;
+import com.victor.trello_clone.model.user.Role;
 import com.victor.trello_clone.repository.UserRepository;
 import com.victor.trello_clone.data.record.SignUpRequest;
 import jakarta.persistence.EntityNotFoundException;
