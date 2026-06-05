@@ -33,7 +33,7 @@ public class AuthController {
     }
 
     @PostMapping("/signin")
-    public ResponseEntity<AccessTokenResponse> signIn(
+    public ResponseEntity<Void> signIn(
             @RequestBody AuthRequest request,
             HttpServletResponse response) throws CredentialException {
 
@@ -41,25 +41,45 @@ public class AuthController {
 
         ResponseCookie refreshCookie = ResponseCookie.from("refresh_token", tokens.refreshToken())
                 .httpOnly(true)
-                .secure(false) //trocar pra true em prod
+                .secure(false) //TODO: trocar para true em prod
                 .path("/api/v1/auth/refresh")
-                .maxAge(Duration.ofDays(7))
+                .maxAge(Duration.ofSeconds(tokens.refreshExpiresAt()))
+                .sameSite("Strict")
+                .build();
+
+        ResponseCookie accessCookie = ResponseCookie.from("access_token", tokens.accessToken())
+                .httpOnly(true)
+                .secure(false) //TODO: trocar para true em prod
+                .path("/api/v1")
+                .maxAge(Duration.ofMinutes(15))
                 .sameSite("Strict")
                 .build();
 
         response.addHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
+        response.addHeader(HttpHeaders.SET_COOKIE, accessCookie.toString());
 
-
-
-        return ResponseEntity.ok(
-                new AccessTokenResponse(tokens.accessToken(), tokens.accessExpiresIn())
-        );
+        return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/refresh")
-    public ResponseEntity<AccessTokenResponse> refreshToken(
-            @CookieValue(value = "refresh_token") String refreshToken) {
-        return ResponseEntity.ok(authService.refreshToken(refreshToken));
+    @PostMapping("/refresh")
+    public ResponseEntity<Void> refreshToken(
+            @CookieValue(value = "refresh_token") String refreshToken,
+            HttpServletResponse response) {
+
+        var accessToken = authService.refreshToken(refreshToken);
+
+        ResponseCookie accessCookie = ResponseCookie.from("access_token", accessToken.accessToken())
+                .httpOnly(true)
+                .secure(false) //TODO: trocar para true em prod
+                .path("/api/v1")
+                .maxAge(Duration.ofMinutes(15))
+                .sameSite("Strict")
+                .build();
+
+        response.addHeader(HttpHeaders.SET_COOKIE, accessCookie.toString());
+
+
+        return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/send/token")
