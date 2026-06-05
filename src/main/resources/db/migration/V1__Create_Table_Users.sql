@@ -5,5 +5,6 @@ CREATE TABLE IF NOT EXISTS users (
     password VARCHAR(255) NOT NULL,
     created_at TIMESTAMP NOT NULL,
     updated_at TIMESTAMP,
-    email_verified BOOLEAN NOT NULL
+    email_verified BOOLEAN NOT NULL,
+    last_verification_sent_at TIMESTAMP WITH TIME ZONE
 );

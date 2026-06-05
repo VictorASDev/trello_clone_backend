@@ -7,7 +7,6 @@ import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.io.Resource;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -56,6 +55,7 @@ public class SecurityConfig {
                 .build();
 
         var jwks = new ImmutableJWKSet<>(new JWKSet(jwk));
+
         return new NimbusJwtEncoder(jwks);
     }
 
@@ -70,14 +70,16 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, CookieBearerTokenResolver resolver) {
         return http
                 .httpBasic(AbstractHttpConfigurer::disable)
-                .csrf(AbstractHttpConfigurer::disable)
+                .csrf(AbstractHttpConfigurer::disable) //TODO: implementar configurações de csrf
                 .oauth2ResourceServer(oauth2 ->
-                        oauth2.jwt(jwt ->
-                                jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())
-                        )
+                        oauth2
+                                .bearerTokenResolver(resolver)
+                                .jwt(jwt ->
+                                    jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())
+                                )
                 )
 
                 .sessionManagement(session ->
@@ -88,6 +90,8 @@ public class SecurityConfig {
                                 "/api/v1/auth/refresh",
                                 "/api/v1/auth/signup",
                                 "/api/v1/auth/logout",
+                                "/api/v1/auth/send/validation",
+                                "/api/v1/auth/send/token",
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**"
                         ).permitAll()
@@ -106,9 +110,15 @@ public class SecurityConfig {
         authoritiesConverter.setAuthoritiesClaimName("roles");
         authoritiesConverter.setAuthorityPrefix("ROLE_");
 
-        JwtAuthenticationConverter jwtConverter =
-                new JwtAuthenticationConverter();
-        jwtConverter.setJwtGrantedAuthoritiesConverter(authoritiesConverter);
+        JwtAuthenticationConverter jwtConverter = new JwtAuthenticationConverter();
+        jwtConverter.setJwtGrantedAuthoritiesConverter(jwt -> {
+            String type = jwt.getClaim("type");
+            if (!"access".equals(type)) {
+                throw new RuntimeException("Token type is not access!");
+            }
+
+            return authoritiesConverter.convert(jwt);
+        });
 
         return jwtConverter;
     }
@@ -117,19 +127,23 @@ public class SecurityConfig {
         key = key
                 .replace("-----BEGIN PRIVATE KEY-----", "")
                 .replace("-----END PRIVATE KEY-----", "")
-                .replaceAll("\\s", "");
+                .replaceAll("\\s", "")
+                .replace("\\n", "")
+                .replace("\n", "");
 
         byte[] decoded = Base64.getDecoder().decode(key);
         var spec = new PKCS8EncodedKeySpec(decoded);
         var factory = KeyFactory.getInstance("RSA");
-        return (RSAPrivateKey) factory.generatePrivate(spec);
+        return (RSAPrivateKey) factory.generatePrivate(spec); 
     }
 
     private RSAPublicKey loadPublicKey(String key) throws Exception {
         key = key
                 .replace("-----BEGIN PUBLIC KEY-----", "")
                 .replace("-----END PUBLIC KEY-----", "")
-                .replaceAll("\\s", "");
+                .replaceAll("\\s", "")
+                .replace("\\n", "")
+                .replace("\n", "");
 
         byte[] decoded = Base64.getDecoder().decode(key);
         var spec = new X509EncodedKeySpec(decoded);
