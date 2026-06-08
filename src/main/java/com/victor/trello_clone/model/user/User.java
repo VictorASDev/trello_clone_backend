@@ -1,6 +1,6 @@
-package com.victor.trello_clone.model;
+package com.victor.trello_clone.model.user;
 
-import com.victor.trello_clone.model.enums.Role;
+import com.victor.trello_clone.model.workspace.WorkspaceMember;
 import jakarta.persistence.*;
 
 import java.time.Instant;
@@ -47,6 +47,9 @@ public class User {
 
     @Column(name = "last_verification_sent_at")
     private Instant lastVerificationSentAt;
+
+    @OneToMany(mappedBy = "user")
+    private Set<WorkspaceMember> workspaces = new HashSet<>();
 
     @PrePersist
     public void onCreate() {
@@ -131,18 +134,22 @@ public class User {
         this.lastVerificationSentAt = lastVerificationSentAt;
     }
 
+    public Set<WorkspaceMember> getWorkspaces() {
+        return workspaces;
+    }
+
+    public void setWorkspaces(Set<WorkspaceMember> workspaces) {
+        this.workspaces = workspaces;
+    }
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof User)) return false;
-        User user = (User) o;
-        return id != null && id.equals(user.id);
+        if (!(o instanceof User user)) return false;
+        return Objects.equals(getId(), user.getId());
     }
 
     @Override
     public int hashCode() {
-        return getClass().hashCode();
+        return Objects.hashCode(getId());
     }
-
 }
