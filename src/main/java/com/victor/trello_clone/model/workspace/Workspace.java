@@ -70,14 +70,15 @@ public class Workspace {
         this.members = members;
     }
 
+
     @Override
     public boolean equals(Object o) {
         if (!(o instanceof Workspace workspace)) return false;
-        return Objects.equals(getWorkspaceId(), workspace.getWorkspaceId()) && Objects.equals(getName(), workspace.getName()) && Objects.equals(getCreatedAt(), workspace.getCreatedAt()) && Objects.equals(getOwner(), workspace.getOwner()) && Objects.equals(getMembers(), workspace.getMembers());
+        return Objects.equals(getWorkspaceId(), workspace.getWorkspaceId());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getWorkspaceId(), getName(), getCreatedAt(), getOwner(), getMembers());
+        return Objects.hashCode(getWorkspaceId());
     }
 }

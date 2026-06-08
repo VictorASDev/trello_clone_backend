@@ -1,8 +1,11 @@
 package com.victor.trello_clone.controller;
 
+import com.victor.trello_clone.controller.docs.WorkspaceControllerDocs;
 import com.victor.trello_clone.data.dto.PageResponse;
+import com.victor.trello_clone.data.dto.UserDto;
 import com.victor.trello_clone.data.dto.WorkspaceDto;
 import com.victor.trello_clone.data.record.SendInvitationRequest;
+import com.victor.trello_clone.data.record.TokenRequest;
 import com.victor.trello_clone.data.record.WorkspaceRequest;
 import com.victor.trello_clone.service.WorkspaceService;
 import org.springframework.data.domain.PageRequest;
@@ -13,11 +16,12 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/workspaces")
-public class WorkspaceController {
+public class WorkspaceController implements WorkspaceControllerDocs {
 
     private final WorkspaceService service;
 
@@ -25,7 +29,8 @@ public class WorkspaceController {
         this.service = service;
     }
 
-    @GetMapping()
+    @GetMapping
+    @Override
     public ResponseEntity<PageResponse<WorkspaceDto>> findAll(
             @AuthenticationPrincipal Jwt jwt,
             @RequestParam(value = "page", defaultValue = "0") Integer page,
@@ -38,41 +43,106 @@ public class WorkspaceController {
         return ResponseEntity.ok(service.findAll(jwt, pageable));
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<WorkspaceDto> findById(@PathVariable("id") UUID id) {
-        return ResponseEntity.ok(service.findById(id));
+    @GetMapping("/{workspaceId}")
+    @Override
+    public ResponseEntity<WorkspaceDto> findById(@PathVariable("workspaceId") UUID workspaceId,
+                                                 @AuthenticationPrincipal Jwt jwt) {
+        return ResponseEntity.ok(service.findAccessibleWorkspaceById(
+                UUID.fromString(jwt.getSubject()),
+                workspaceId));
+    }
+
+    @GetMapping("/{workspaceId}/members")
+    @Override
+    public ResponseEntity<List<UserDto>> getMembers(@PathVariable("workspaceId") UUID workspaceId,
+                                                    @AuthenticationPrincipal Jwt jwt) {
+
+        return ResponseEntity.ok(service.findWorkspaceMembers(
+                UUID.fromString(jwt.getSubject()),
+                workspaceId));
     }
 
     @PostMapping("/{workspaceId}/invitations")
+    @Override
     public ResponseEntity<Void> sendInvitation(
             @AuthenticationPrincipal Jwt jwt,
             @RequestBody SendInvitationRequest request,
             @PathVariable UUID workspaceId) {
-        service.sendWorkspaceInvite(UUID.fromString(jwt.getSubject()), request, workspaceId);
+        service.sendWorkspaceInvite(
+                UUID.fromString(jwt.getSubject()),
+                request,
+                workspaceId);
 
         return ResponseEntity.noContent().build();
     }
 
+    @PostMapping("/invitations/accept")
+    @Override
+    public ResponseEntity<WorkspaceDto> acceptInvitation(@AuthenticationPrincipal Jwt jwt,
+                                                         @RequestBody TokenRequest invitationToken) {
+        var response = service.acceptWorkspaceInvite(
+                invitationToken.token(),
+                UUID.fromString(jwt.getSubject()));
+
+        return ResponseEntity.ok(response);
+    }
+
     @PatchMapping("/{workspaceId}/updateName")
+    @Override
     public ResponseEntity<WorkspaceDto> updateWorkspaceName(@AuthenticationPrincipal Jwt jwt,
                                                             @RequestBody WorkspaceRequest workspaceRequest,
-                                                            @PathVariable("workspaceId") UUID workspaceId) {
+                                                            @PathVariable("workspaceId") String workspaceId) {
 
         return ResponseEntity.ok(service.updateName(
                 UUID.fromString(jwt.getSubject()),
                 workspaceRequest,
-                workspaceId));
+                UUID.fromString(workspaceId)));
     }
 
     @PostMapping
+    @Override
     public ResponseEntity<WorkspaceDto> create(@RequestBody WorkspaceRequest workspaceRequest,
                                                @AuthenticationPrincipal Jwt jwt) {
 
-        return ResponseEntity.ok(service.create(jwt, workspaceRequest.workspaceName()));
+        return ResponseEntity.ok(service.create(
+                UUID.fromString(jwt.getSubject()),
+                workspaceRequest.workspaceName())
+        );
+    }
+
+    @DeleteMapping("/{workspaceId}/leave")
+    @Override
+    public ResponseEntity<Void> leaveWorkspace(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable("workspaceId") String workspaceId) {
+
+        service.leaveWorkspace(
+                UUID.fromString(jwt.getSubject()),
+                UUID.fromString(workspaceId)
+        );
+
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/{workspaceId}/members/{memberId}")
+    @Override
+    public ResponseEntity<Void> deleteWorkspaceMember(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable("workspaceId") String workspaceId,
+            @PathVariable("memberId") String memberId) {
+
+         service.removeMember(
+                UUID.fromString(jwt.getSubject()),
+                UUID.fromString(workspaceId),
+                UUID.fromString(memberId)
+        );
+
+        return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@AuthenticationPrincipal Jwt jwt,
+    @Override
+    public ResponseEntity<Void> deleteWorkspace(@AuthenticationPrincipal Jwt jwt,
                                                @PathVariable("id") String workspaceId) {
         service.delete(
                 UUID.fromString(jwt.getSubject()),

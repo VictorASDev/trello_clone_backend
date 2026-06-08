@@ -145,11 +145,11 @@ public class User {
     @Override
     public boolean equals(Object o) {
         if (!(o instanceof User user)) return false;
-        return isEmailVerified() == user.isEmailVerified() && Objects.equals(getId(), user.getId()) && Objects.equals(getEmail(), user.getEmail()) && Objects.equals(getUsername(), user.getUsername()) && Objects.equals(getPassword(), user.getPassword()) && Objects.equals(getRoles(), user.getRoles()) && Objects.equals(getCreatedAt(), user.getCreatedAt()) && Objects.equals(getUpdatedAt(), user.getUpdatedAt()) && Objects.equals(getLastVerificationSentAt(), user.getLastVerificationSentAt()) && Objects.equals(getWorkspaces(), user.getWorkspaces());
+        return Objects.equals(getId(), user.getId());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getId(), getEmail(), getUsername(), getPassword(), getRoles(), getCreatedAt(), getUpdatedAt(), isEmailVerified(), getLastVerificationSentAt(), getWorkspaces());
+        return Objects.hashCode(getId());
     }
 }

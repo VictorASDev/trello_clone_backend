@@ -1,21 +1,30 @@
 package com.victor.trello_clone.data.dto;
 
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import com.victor.trello_clone.model.user.Role;
+import com.victor.trello_clone.model.user.User;
 
 import java.time.LocalDateTime;
-import java.util.HashSet;
+
 import java.util.Objects;
-import java.util.Set;
 import java.util.UUID;
 
 @JsonPropertyOrder({"id", "email", "username", "createdAt", "updatedAt", "roles"})
 public class UserDto {
 
+    public UserDto(UUID id, String email, String username, LocalDateTime createdAt, LocalDateTime updatedAt) {
+        this.id = id;
+        this.email = email;
+        this.username = username;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+    }
+
+    public UserDto() {
+    }
+
     private UUID id;
     private String email;
     private String username;
-    private Set<Role> roles = new HashSet<>();
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -51,14 +60,6 @@ public class UserDto {
         this.updatedAt = updatedAt;
     }
 
-    public Set<Role> getRoles() {
-        return roles;
-    }
-
-    public void setRoles(Set<Role> roles) {
-        this.roles = roles;
-    }
-
     public UUID getId() {
         return id;
     }
@@ -70,11 +71,21 @@ public class UserDto {
     @Override
     public boolean equals(Object o) {
         if (!(o instanceof UserDto userDto)) return false;
-        return Objects.equals(getId(), userDto.getId()) && Objects.equals(getEmail(), userDto.getEmail()) && Objects.equals(getUsername(), userDto.getUsername()) && Objects.equals(getRoles(), userDto.getRoles()) && Objects.equals(getCreatedAt(), userDto.getCreatedAt()) && Objects.equals(getUpdatedAt(), userDto.getUpdatedAt());
+        return Objects.equals(getId(), userDto.getId()) && Objects.equals(getEmail(), userDto.getEmail()) && Objects.equals(getUsername(), userDto.getUsername()) && Objects.equals(getCreatedAt(), userDto.getCreatedAt()) && Objects.equals(getUpdatedAt(), userDto.getUpdatedAt());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getId(), getEmail(), getUsername(), getRoles(), getCreatedAt(), getUpdatedAt());
+        return Objects.hash(getId(), getEmail(), getUsername(), getCreatedAt(), getUpdatedAt());
+    }
+
+    public UserDto toDto(User u) {
+        return new UserDto(
+                u.getId(),
+                u.getEmail(),
+                u.getUsername(),
+                u.getCreatedAt(),
+                u.getUpdatedAt()
+        );
     }
 }

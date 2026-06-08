@@ -2,7 +2,9 @@ package com.victor.trello_clone.mail;
 
 import com.victor.trello_clone.data.record.EmailRequest;
 import com.victor.trello_clone.model.user.User;
+import com.victor.trello_clone.model.workspace.Workspace;
 import com.victor.trello_clone.service.UserService;
+import com.victor.trello_clone.service.WorkspaceService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.Async;
@@ -30,6 +32,7 @@ public class EmailService {
 
     @Value("${app.frontend.url}")
     private String frontendUrl;
+
 
     public EmailService(EmailSender sender,
                         UserService userService,
@@ -109,17 +112,17 @@ public class EmailService {
                 .getTokenValue();
     }
 
-    public String generateWorkspaceInviteToken(String userEmail, String workspaceName) {
-        var user = userService.findByEmail(userEmail);
+    public String generateWorkspaceInviteToken(String userEmail,UUID userId, UUID workspaceId) {
         Instant now = Instant.now();
+
 
         JwtClaimsSet claims = JwtClaimsSet.builder()
                 .issuer(ISSUER)
                 .issuedAt(now)
                 .expiresAt(now.plusSeconds(86400))
-                .subject(user.getId().toString())
+                .subject(userId.toString())
                 .claim("type", "workspace_invitation")
-                .claim("workspace", workspaceName)
+                .claim("workspace_id", workspaceId)
                 .claim("invited_email", userEmail)
                 .build();
 
@@ -152,29 +155,29 @@ public class EmailService {
     }
 
     @Async
-    public void sendAsyncWorkspaceInvite(String invitedEmail, String workspaceName) {
-        sendWorkspaceInvite(invitedEmail, workspaceName);
+    public void sendAsyncWorkspaceInvite(User invitedUser, Workspace workspace) {
+        sendWorkspaceInvite(invitedUser, workspace);
     }
 
-    private void sendWorkspaceInvite(String invitedEmail, String workspaceName) {
-        var userOpt = userService.findOptionalByEmail(invitedEmail);
+    private void sendWorkspaceInvite(User invitedUser, Workspace workspace) {
 
-        if (userOpt.isEmpty()) return;
+        var token = generateWorkspaceInviteToken(
+                invitedUser.getEmail(),
+                invitedUser.getId(),
+                workspace.getWorkspaceId());
 
-        User user = userOpt.get();
+        String verificationUrl = frontendUrl + "/invitations/accept?token=" + token;
 
-        if (!user.isEmailVerified())
-            return;
+        var body = buildWorkspaceInviteEmail(
+                invitedUser.getUsername(),
+                workspace.getName(),
+                verificationUrl);
 
-        var token = generateWorkspaceInviteToken(invitedEmail, workspaceName);
-
-        String verificationUrl = frontendUrl + "/accept-invite?token=" + token;
-
-        var body = buildWorkspaceInviteEmail(user.getUsername(), workspaceName, verificationUrl);
+        System.out.println("Token = " + token);
 
         sender.send(
-                new String[]{invitedEmail},
-                "Collaboration invite for "+ workspaceName +"´s team",
+                new String[]{invitedUser.getEmail()},
+                "Collaboration invite for " + workspace.getName() + "´s team",
                 body
         );
     }

@@ -24,4 +24,5 @@ public interface WorkspaceRepository extends JpaRepository<Workspace, UUID> {
 
     @Query("SELECT w FROM Workspace w where w.name = :workspaceName")
     Optional<Workspace> findByName(@Param("workspaceName") String workspaceName);
+
 }

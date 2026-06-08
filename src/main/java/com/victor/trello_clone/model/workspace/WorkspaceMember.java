@@ -1,25 +1,29 @@
 package com.victor.trello_clone.model.workspace;
 
 import com.victor.trello_clone.model.user.User;
-import jakarta.persistence.EmbeddedId;
-import jakarta.persistence.Entity;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.MapsId;
+import jakarta.persistence.*;
 
 import java.time.Instant;
 import java.util.Objects;
 
 @Entity
+@Table(name = "workspace_member")
 public class WorkspaceMember {
 
     public WorkspaceMember() {
     }
 
     public WorkspaceMember(
-                           Workspace workspace,
-                           User user,
-                           String role,
-                           Instant joinedAt) {
+            Workspace workspace,
+            User user,
+            String role,
+            Instant joinedAt
+    ) {
+        this.id = new WorkspaceMemberId(
+                workspace.getWorkspaceId(),
+                user.getId()
+        );
+
         this.workspace = workspace;
         this.user = user;
         this.role = role;
@@ -31,14 +35,18 @@ public class WorkspaceMember {
 
     @ManyToOne
     @MapsId("workspaceId")
+    @JoinColumn(name = "workspace_id")
     private Workspace workspace;
 
     @ManyToOne
     @MapsId("userId")
+    @JoinColumn(name = "user_id")
     private User user;
 
+    @Column(nullable = false)
     private String role;
 
+    @Column(name = "joined_at", nullable = false)
     private Instant joinedAt;
 
     public WorkspaceMemberId getId() {
@@ -84,11 +92,11 @@ public class WorkspaceMember {
     @Override
     public boolean equals(Object o) {
         if (!(o instanceof WorkspaceMember that)) return false;
-        return Objects.equals(getId(), that.getId()) && Objects.equals(getWorkspace(), that.getWorkspace()) && Objects.equals(getUser(), that.getUser()) && Objects.equals(getRole(), that.getRole()) && Objects.equals(getJoinedAt(), that.getJoinedAt());
+        return Objects.equals(getId(), that.getId());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getId(), getWorkspace(), getUser(), getRole(), getJoinedAt());
+        return Objects.hashCode(getId());
     }
 }
