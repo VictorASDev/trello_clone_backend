@@ -1,8 +1,8 @@
 package com.victor.trello_clone.controller;
 
 import com.victor.trello_clone.data.record.*;
+import com.victor.trello_clone.mail.EmailService;
 import com.victor.trello_clone.service.AuthService;
-import com.victor.trello_clone.service.UserService;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
@@ -18,11 +18,11 @@ import java.util.Map;
 public class AuthController {
 
     private final AuthService authService;
-    private final UserService userService;
+    private final EmailService emailService;
 
-    public AuthController(AuthService authService, UserService userService) {
+    public AuthController(AuthService authService, EmailService emailService) {
         this.authService = authService;
-        this.userService = userService;
+        this.emailService = emailService;
     }
 
     @PostMapping("/signup")
@@ -85,7 +85,7 @@ public class AuthController {
     @PostMapping("/send/token")
     public ResponseEntity<?> sendVerification(@RequestBody ValidateEmailRequest req) {
 
-        authService.sendVerificationEmail(req.userEmail());
+        emailService.sendVerificationEmailAsync(req.userEmail());
 
         return ResponseEntity.ok(
                 Map.of("message",
@@ -95,7 +95,7 @@ public class AuthController {
 
     @PatchMapping("/send/validation")
     public ResponseEntity<Void> validateEmailToken(@RequestBody TokenRequest request) {
-        authService.validateEmail(request.token());
+        emailService.validateEmail(request.token());
 
         return ResponseEntity.ok().build();
     }
