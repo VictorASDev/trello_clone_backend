@@ -16,7 +16,7 @@ public class WorkspaceMember {
     public WorkspaceMember(
             Workspace workspace,
             User user,
-            String role,
+            WorkspaceRole role,
             Instant joinedAt
     ) {
         this.id = new WorkspaceMemberId(
@@ -43,8 +43,9 @@ public class WorkspaceMember {
     @JoinColumn(name = "user_id")
     private User user;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private String role;
+    private WorkspaceRole role;
 
     @Column(name = "joined_at", nullable = false)
     private Instant joinedAt;
@@ -73,11 +74,11 @@ public class WorkspaceMember {
         this.user = user;
     }
 
-    public String getRole() {
+    public WorkspaceRole getRole() {
         return role;
     }
 
-    public void setRole(String role) {
+    public void setRole(WorkspaceRole role) {
         this.role = role;
     }
 

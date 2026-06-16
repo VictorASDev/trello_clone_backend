@@ -2,7 +2,7 @@ package com.victor.trello_clone.controller;
 
 import com.victor.trello_clone.controller.docs.WorkspaceControllerDocs;
 import com.victor.trello_clone.data.dto.PageResponse;
-import com.victor.trello_clone.data.dto.UserDto;
+import com.victor.trello_clone.data.dto.WorkspaceMemberDto;
 import com.victor.trello_clone.data.dto.WorkspaceDto;
 import com.victor.trello_clone.data.record.SendInvitationRequest;
 import com.victor.trello_clone.data.record.TokenRequest;
@@ -38,9 +38,9 @@ public class WorkspaceController implements WorkspaceControllerDocs {
             @RequestParam(value = "direction", defaultValue = "asc") String direction) {
 
         var sortDirection = "desc".equalsIgnoreCase(direction) ? Sort.Direction.DESC : Sort.Direction.ASC;
-        Pageable pageable = PageRequest.of(page, size, Sort.by(sortDirection, "name"));
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortDirection, "workspace.name"));
 
-        return ResponseEntity.ok(service.findAll(jwt, pageable));
+        return ResponseEntity.ok(service.findAll(UUID.fromString(jwt.getSubject()), pageable));
     }
 
     @GetMapping("/{workspaceId}")
@@ -48,13 +48,13 @@ public class WorkspaceController implements WorkspaceControllerDocs {
     public ResponseEntity<WorkspaceDto> findById(@PathVariable("workspaceId") UUID workspaceId,
                                                  @AuthenticationPrincipal Jwt jwt) {
         return ResponseEntity.ok(service.findAccessibleWorkspaceById(
-                UUID.fromString(jwt.getSubject()),
-                workspaceId));
+                workspaceId,
+                UUID.fromString(jwt.getSubject())));
     }
 
     @GetMapping("/{workspaceId}/members")
     @Override
-    public ResponseEntity<List<UserDto>> getMembers(@PathVariable("workspaceId") UUID workspaceId,
+    public ResponseEntity<List<WorkspaceMemberDto>> getMembers(@PathVariable("workspaceId") UUID workspaceId,
                                                     @AuthenticationPrincipal Jwt jwt) {
 
         return ResponseEntity.ok(service.findWorkspaceMembers(
