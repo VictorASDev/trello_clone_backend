@@ -1,8 +1,8 @@
 package com.victor.trello_clone.service;
 
 import com.victor.trello_clone.data.dto.PageResponse;
-import com.victor.trello_clone.data.dto.UserDto;
 import com.victor.trello_clone.data.dto.WorkspaceDto;
+import com.victor.trello_clone.data.dto.WorkspaceMemberDto;
 import com.victor.trello_clone.data.record.SendInvitationRequest;
 import com.victor.trello_clone.data.record.WorkspaceRequest;
 import com.victor.trello_clone.exception.UserAlreadyMemberException;
@@ -10,12 +10,12 @@ import com.victor.trello_clone.mail.EmailService;
 import com.victor.trello_clone.model.user.User;
 import com.victor.trello_clone.model.workspace.Workspace;
 import com.victor.trello_clone.model.workspace.WorkspaceMember;
+import com.victor.trello_clone.model.workspace.WorkspaceRole;
 import com.victor.trello_clone.repository.WorkspaceMemberRepository;
 import com.victor.trello_clone.repository.WorkspaceRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.stereotype.Service;
@@ -34,22 +34,25 @@ public class WorkspaceService {
     private final EmailService emailService;
     private final JwtDecoder jwtDecoder;
     private final WorkspaceMemberRepository workspaceMemberRepository;
+    private final WorkspaceAuthorizationService workspaceAuthorizationService;
 
     public WorkspaceService(WorkspaceRepository repository,
                             UserService userService,
                             EmailService emailService,
                             JwtDecoder jwtDecoder,
-                            WorkspaceMemberRepository workspaceMemberRepository) {
+                            WorkspaceMemberRepository workspaceMemberRepository,
+                            WorkspaceAuthorizationService workspaceAuthorizationService) {
         this.repository = repository;
         this.userService = userService;
         this.emailService = emailService;
         this.jwtDecoder = jwtDecoder;
         this.workspaceMemberRepository = workspaceMemberRepository;
+        this.workspaceAuthorizationService = workspaceAuthorizationService;
     }
 
-    public PageResponse<WorkspaceDto> findAll(Jwt token, Pageable pageable) {
+    public PageResponse<WorkspaceDto> findAll(UUID userId, Pageable pageable) {
 
-        var user = userService.findById(UUID.fromString(token.getSubject()));
+        var user = userService.findById(userId);
 
         var page = repository.findUsersWorkspaces(pageable, user.getId())
                 .map(workspace -> new WorkspaceDto().toDto(workspace));
@@ -61,13 +64,9 @@ public class WorkspaceService {
             UUID workspaceId,
             UUID userId
     ) {
+        workspaceAuthorizationService.validateWorkspaceMember(workspaceId, userId);
+
         var workspace = findById(workspaceId);
-
-        var user = userService.findById(userId);
-
-        if (!isMember(workspace, user))
-            throw new AccessDeniedException("User does not have permission");
-
         return new WorkspaceDto().toDto(workspace);
     }
 
@@ -77,25 +76,19 @@ public class WorkspaceService {
                 .orElseThrow(() -> new EntityNotFoundException("Workspace with ID '" + id + "' do not exists!"));
     }
 
-    public List<UserDto> findWorkspaceMembers(UUID userId, UUID workspaceId) {
+    public List<WorkspaceMemberDto> findWorkspaceMembers(UUID userId, UUID workspaceId) {
 
-        var workspace = repository.findById(workspaceId)
+        repository.findById(workspaceId)
                 .orElseThrow(() -> new EntityNotFoundException(
                         "Workspace with id: " + workspaceId + " not found!"
                 ));
 
-        var user = userService.findById(userId);
-
-        boolean isOwner = workspace.getOwner().getId().equals(userId);
-
-        if (!isOwner && !isMember(workspace, user)) {
-            throw new AccessDeniedException("User does not have permission");
-        }
+        workspaceAuthorizationService.validateWorkspaceMember(workspaceId, userId);
 
         return workspaceMemberRepository
-                .findUsersByWorkspaceId(workspaceId)
+                .findMembersByWorkspaceId(workspaceId)
                 .stream()
-                .map(memberUser -> new UserDto().toDto(memberUser))
+                .map(member -> new WorkspaceMemberDto().toDto(member))
                 .toList();
     }
 
@@ -106,9 +99,18 @@ public class WorkspaceService {
 
         workspace.setName(workspaceName);
         workspace.setCreatedAt(LocalDateTime.now());
-        workspace.setOwner(workspaceCreator);
 
         repository.save(workspace);
+
+        WorkspaceMember adminMember = new WorkspaceMember(
+                workspace,
+                workspaceCreator,
+                WorkspaceRole.ADMIN,
+                Instant.now()
+        );
+
+        workspaceMemberRepository.save(adminMember);
+        workspace.getMembers().add(adminMember);
 
         return new WorkspaceDto().toDto(workspace);
     }
@@ -121,9 +123,9 @@ public class WorkspaceService {
                 .orElseThrow(() -> new EntityNotFoundException("Workspace with ID: " + workspaceId + " not found on data!"));
         var invitedUser = userService.findByEmail(request.invitedEmail());
 
-        validateWorkspaceOwner(workspace, user.getId());
+        workspaceAuthorizationService.validateWorkspaceRole(workspaceId, user.getId(), WorkspaceRole.ADMIN);
 
-        if(isMember(workspace, invitedUser))
+        if (workspaceMemberRepository.existsByWorkspace_WorkspaceIdAndUser_Id(workspaceId, invitedUser.getId()))
             throw new UserAlreadyMemberException("User is already a member!");
 
         emailService.sendAsyncWorkspaceInvite(invitedUser, workspace);
@@ -135,9 +137,7 @@ public class WorkspaceService {
         var workspace = repository.findById(workspaceId)
                 .orElseThrow(() -> new EntityNotFoundException("Workspace with name: " + request.workspaceName() + " not found on data!"));
 
-        var user = userService.findById(userId);
-
-        validateWorkspaceOwner(workspace, user.getId());
+        workspaceAuthorizationService.validateWorkspaceRole(workspaceId, userId, WorkspaceRole.ADMIN);
 
         workspace.setName(request.workspaceName());
         repository.save(workspace);
@@ -147,13 +147,16 @@ public class WorkspaceService {
 
     public void delete(UUID userId, String workspaceId) {
 
-        var user = userService.findById(userId);
+        userService.findById(userId);
 
         var workspace = repository.findById(UUID.fromString(workspaceId))
                 .orElseThrow(() -> new EntityNotFoundException("Workspace with id: " + workspaceId + " not found on data!"));
 
-
-        validateWorkspaceOwner(workspace, user.getId());
+        workspaceAuthorizationService.validateWorkspaceRole(
+                UUID.fromString(workspaceId),
+                userId,
+                WorkspaceRole.ADMIN
+        );
 
         repository.delete(workspace);
     }
@@ -185,17 +188,22 @@ public class WorkspaceService {
 
         var workspace = findById(UUID.fromString(jwt.getClaim("workspace_id")));
 
+        if (workspaceMemberRepository.existsByWorkspace_WorkspaceIdAndUser_Id(
+                workspace.getWorkspaceId(),
+                user.getId()
+        )) {
+            throw new UserAlreadyMemberException("User is already a member!");
+        }
 
         WorkspaceMember member = new WorkspaceMember(
                 workspace,
                 user,
-                "MEMBER",
+                WorkspaceRole.MEMBER,
                 Instant.now()
         );
 
         workspaceMemberRepository.save(member);
         workspace.getMembers().add(member);
-
 
         return new WorkspaceDto().toDto(workspace);
     }
@@ -214,14 +222,14 @@ public class WorkspaceService {
         }
     }
 
-    public void removeMember(UUID ownerId, UUID workspaceId, UUID removedUserId) {
+    public void removeMember(UUID adminId, UUID workspaceId, UUID removedUserId) {
 
-        var workspace = repository.findById(workspaceId)
+        repository.findById(workspaceId)
                 .orElseThrow(() -> new EntityNotFoundException("Workspace with id: " + workspaceId + " not found on data!"));
 
-        var removedUser = userService.findById(removedUserId);
+        userService.findById(removedUserId);
 
-        validateWorkspaceOwner(workspace, ownerId);
+        workspaceAuthorizationService.validateWorkspaceRole(workspaceId, adminId, WorkspaceRole.ADMIN);
 
         int deleted = workspaceMemberRepository
                 .deleteByWorkspaceAndUser(workspaceId, removedUserId);
@@ -231,17 +239,5 @@ public class WorkspaceService {
                     "User is not a member of this workspace"
             );
         }
-    }
-
-
-    private void validateWorkspaceOwner(Workspace workspace, UUID userId) {
-        if (!workspace.getOwner().getId().equals(userId)) {
-            throw new AccessDeniedException("User does not have permission");
-        }
-    }
-
-    private static boolean isMember(Workspace workspace, User user) {
-        return workspace.getMembers().stream()
-                .anyMatch(member -> member.getUser().getId().equals(user.getId()));
     }
 }

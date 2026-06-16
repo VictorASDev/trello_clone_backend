@@ -1,6 +1,5 @@
 package com.victor.trello_clone.model.workspace;
 
-import com.victor.trello_clone.model.user.User;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
@@ -22,10 +21,6 @@ public class Workspace {
 
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
-
-    @ManyToOne()
-    @JoinColumn(name = "owner_id")
-    private User owner;
 
     @OneToMany(mappedBy = "workspace")
     private Set<WorkspaceMember> members = new HashSet<>();
@@ -52,14 +47,6 @@ public class Workspace {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
-    }
-
-    public User getOwner() {
-        return owner;
-    }
-
-    public void setOwner(User owner) {
-        this.owner = owner;
     }
 
     public Set<WorkspaceMember> getMembers() {
