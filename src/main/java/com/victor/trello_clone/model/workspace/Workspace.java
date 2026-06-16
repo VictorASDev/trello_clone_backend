@@ -1,13 +1,11 @@
 package com.victor.trello_clone.model.workspace;
 
+import com.victor.trello_clone.model.board.Board;
 import com.victor.trello_clone.model.user.User;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @Entity
 @Table(name = "workspaces")
@@ -26,6 +24,9 @@ public class Workspace {
     @ManyToOne()
     @JoinColumn(name = "owner_id")
     private User owner;
+
+    @OneToMany(mappedBy = "workspace")
+    private List<Board> boards;
 
     @OneToMany(mappedBy = "workspace")
     private Set<WorkspaceMember> members = new HashSet<>();
@@ -70,6 +71,13 @@ public class Workspace {
         this.members = members;
     }
 
+    public List<Board> getBoards() {
+        return boards;
+    }
+
+    public void setBoards(List<Board> boards) {
+        this.boards = boards;
+    }
 
     @Override
     public boolean equals(Object o) {
