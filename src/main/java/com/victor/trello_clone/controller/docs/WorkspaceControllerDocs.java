@@ -1,7 +1,7 @@
 package com.victor.trello_clone.controller.docs;
 
 import com.victor.trello_clone.data.dto.PageResponse;
-import com.victor.trello_clone.data.dto.UserDto;
+import com.victor.trello_clone.data.dto.WorkspaceMemberDto;
 import com.victor.trello_clone.data.dto.WorkspaceDto;
 import com.victor.trello_clone.data.record.SendInvitationRequest;
 import com.victor.trello_clone.data.record.TokenRequest;
@@ -62,7 +62,7 @@ public interface WorkspaceControllerDocs {
                     @ApiResponse(responseCode = "500", description = "Internal Server Error", content = @Content)
             }
     )
-    ResponseEntity<List<UserDto>> getMembers(UUID workspaceId, Jwt jwt);
+    ResponseEntity<List<WorkspaceMemberDto>> getMembers(UUID workspaceId, Jwt jwt);
 
     @Operation(
             summary = "Send workspace invitation",

@@ -15,10 +15,9 @@ import java.util.UUID;
 public interface WorkspaceRepository extends JpaRepository<Workspace, UUID> {
 
     @Query("""
-           SELECT w
-           FROM Workspace w
-           JOIN w.owner u
-           WHERE u.id = :userId
+           SELECT wm.workspace
+           FROM WorkspaceMember wm
+           WHERE wm.user.id = :userId
        """)
     Page<Workspace> findUsersWorkspaces(Pageable pageable, @Param("userId") UUID userId);
 
