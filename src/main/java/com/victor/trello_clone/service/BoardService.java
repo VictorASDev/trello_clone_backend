@@ -1,14 +1,15 @@
 package com.victor.trello_clone.service;
 
 import com.victor.trello_clone.data.dto.BoardDto;
+import com.victor.trello_clone.data.dto.PageResponse;
 import com.victor.trello_clone.data.record.CreateBoardRequest;
+import com.victor.trello_clone.data.record.UpdateBoardRequest;
 import com.victor.trello_clone.model.board.Board;
 import com.victor.trello_clone.model.workspace.Workspace;
+import com.victor.trello_clone.model.workspace.WorkspaceRole;
 import com.victor.trello_clone.repository.BoardRepository;
-import com.victor.trello_clone.repository.WorkspaceMemberRepository;
-import com.victor.trello_clone.repository.WorkspaceRepository;
 import jakarta.persistence.EntityNotFoundException;
-import org.springframework.security.access.AccessDeniedException;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
@@ -17,15 +18,28 @@ import java.util.UUID;
 public class BoardService {
 
     private final BoardRepository repository;
-    private final WorkspaceRepository workspaceRepository;
-    private final WorkspaceMemberRepository workspaceMemberRepository;
+    private final WorkspaceService workspaceService;
+    private final WorkspaceAuthorizationService workspaceAuthorizationService;
+
 
     public BoardService(BoardRepository repository,
-                        WorkspaceRepository workspaceRepository,
-                        WorkspaceMemberRepository workspaceMemberRepository) {
+                        WorkspaceService workspaceService,
+                        WorkspaceAuthorizationService workspaceAuthorizationService) {
         this.repository = repository;
-        this.workspaceRepository = workspaceRepository;
-        this.workspaceMemberRepository = workspaceMemberRepository;
+        this.workspaceService = workspaceService;
+        this.workspaceAuthorizationService = workspaceAuthorizationService;
+    }
+
+    public PageResponse<BoardDto> findAll(UUID userId, UUID workspaceId, Pageable pageable) {
+
+        workspaceService.findById(workspaceId);
+
+        workspaceAuthorizationService.validateWorkspaceMember(workspaceId, userId);
+
+        var page = repository.findByWorkspace_WorkspaceId(workspaceId, pageable)
+                .map(board -> new BoardDto().toDto(board));
+
+        return new PageResponse<>(page);
     }
 
     public BoardDto createBoard(
@@ -33,18 +47,12 @@ public class BoardService {
             UUID workspaceId,
             CreateBoardRequest request) {
 
-        Workspace workspace = workspaceRepository.findById(workspaceId)
-                .orElseThrow(() -> new EntityNotFoundException("Workspace not found"));
+        Workspace workspace = workspaceService.findById(workspaceId);
 
-        //TODO: implementar método
-        if (!workspaceMemberRepository.existsByWorkspaceAndUser(workspaceId, userId)) {
-            throw new AccessDeniedException(
-                    "User is not a member of this workspace");
-        }
+        workspaceAuthorizationService.validateWorkspaceMember(workspaceId, userId);
 
         Board board = new Board();
 
-        board.setId(UUID.randomUUID());
         board.setName(request.name());
         board.setDescription(request.description());
         board.setWorkspace(workspace);
@@ -52,6 +60,43 @@ public class BoardService {
         repository.save(board);
 
         return new BoardDto().toDto(board);
+    }
+
+    public void deleteBoard(
+            UUID userId,
+            UUID boardId) {
+
+        var board = repository.findById(boardId)
+                .orElseThrow(() -> new EntityNotFoundException("Board not found"));
+
+        workspaceAuthorizationService.validateWorkspaceRole(
+                board.getWorkspace().getWorkspaceId(),
+                userId,
+                WorkspaceRole.ADMIN
+        );
+
+        repository.delete(board);
+    }
+
+    public void updateBoard(
+            UUID userId,
+            UUID boardId,
+            UpdateBoardRequest request
+    ) {
+
+        var board = repository.findById(boardId)
+                .orElseThrow(() -> new EntityNotFoundException("Board not found"));
+
+        workspaceAuthorizationService.validateWorkspaceMember(
+                board.getWorkspace().getWorkspaceId(),
+                userId
+        );
+
+        board.setName(request.name());
+        board.setDescription(request.description());
+        board.setBackgroundColor(request.backgroundColor());
+
+        repository.save(board);
     }
 
 }

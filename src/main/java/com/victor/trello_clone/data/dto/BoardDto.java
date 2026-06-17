@@ -1,5 +1,6 @@
 package com.victor.trello_clone.data.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.victor.trello_clone.model.board.Board;
 import com.victor.trello_clone.model.workspace.Workspace;
 
@@ -34,6 +35,8 @@ public class BoardDto {
     private String backgroundColor;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+
+    @JsonIgnore
     private Workspace workspace;
 
     public UUID getId() {
