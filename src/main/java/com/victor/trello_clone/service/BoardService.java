@@ -99,4 +99,16 @@ public class BoardService {
         repository.save(board);
     }
 
+    public BoardDto findById(UUID boardId) {
+        return new BoardDto().toDto(
+                repository.findById(boardId)
+                .orElseThrow(() -> new EntityNotFoundException("Board not found!"))
+        );
+    }
+
+    public Board findEntityById(UUID boardId) {
+        return repository.findById(boardId)
+                .orElseThrow(() ->
+                        new EntityNotFoundException("Board not found"));
+    }
 }
