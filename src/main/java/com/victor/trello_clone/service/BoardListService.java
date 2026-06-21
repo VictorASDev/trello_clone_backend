@@ -49,6 +49,11 @@ public class BoardListService {
 
     }
 
+    public BoardList findEntityById(Long listId) {
+        return repository.findById(listId)
+            .orElseThrow(() -> new EntityNotFoundException("List not found on data"));
+    }
+
     public PageResponse<BoardListDto> findAll(UUID userId, UUID boardId, Pageable pageable) {
 
         var boardDto = boardService.findById(boardId);
