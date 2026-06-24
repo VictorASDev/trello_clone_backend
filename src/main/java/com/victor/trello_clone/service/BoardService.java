@@ -55,6 +55,7 @@ public class BoardService {
 
         board.setName(request.name());
         board.setDescription(request.description());
+        board.setBackgroundColor(request.backgroundColor());
         board.setWorkspace(workspace);
 
         repository.save(board);
