@@ -1,8 +1,10 @@
 package com.victor.trello_clone.controller;
 
+import com.victor.trello_clone.data.dto.UserDto;
 import com.victor.trello_clone.data.record.*;
 import com.victor.trello_clone.mail.EmailService;
 import com.victor.trello_clone.service.AuthService;
+import com.victor.trello_clone.service.UserService;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
@@ -19,10 +21,12 @@ public class AuthController {
 
     private final AuthService authService;
     private final EmailService emailService;
+    private final UserService userService;
 
-    public AuthController(AuthService authService, EmailService emailService) {
+    public AuthController(AuthService authService, EmailService emailService, UserService userService) {
         this.authService = authService;
         this.emailService = emailService;
+        this.userService = userService;
     }
 
     @PostMapping("/signup")
@@ -33,7 +37,7 @@ public class AuthController {
     }
 
     @PostMapping("/signin")
-    public ResponseEntity<Void> signIn(
+    public ResponseEntity<UserDto> signIn(
             @RequestBody AuthRequest request,
             HttpServletResponse response) throws CredentialException {
 
@@ -44,21 +48,25 @@ public class AuthController {
                 .secure(false) //TODO: trocar para true em prod
                 .path("/api/v1/auth/refresh")
                 .maxAge(Duration.ofSeconds(tokens.refreshExpiresAt()))
-                .sameSite("Strict")
+                .sameSite("Lax")
                 .build();
 
         ResponseCookie accessCookie = ResponseCookie.from("access_token", tokens.accessToken())
                 .httpOnly(true)
                 .secure(false) //TODO: trocar para true em prod
-                .path("/api/v1")
+                .path("/")
                 .maxAge(Duration.ofMinutes(15))
-                .sameSite("Strict")
+                .sameSite("Lax")
                 .build();
 
         response.addHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
         response.addHeader(HttpHeaders.SET_COOKIE, accessCookie.toString());
 
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(
+                new UserDto().toDto(
+                        userService.findByEmail(request.email())
+                )
+        );
     }
 
     @PostMapping("/refresh")
@@ -71,9 +79,9 @@ public class AuthController {
         ResponseCookie accessCookie = ResponseCookie.from("access_token", accessToken.accessToken())
                 .httpOnly(true)
                 .secure(false) //TODO: trocar para true em prod
-                .path("/api/v1")
+                .path("/")
                 .maxAge(Duration.ofMinutes(15))
-                .sameSite("Strict")
+                .sameSite("Lax")
                 .build();
 
         response.addHeader(HttpHeaders.SET_COOKIE, accessCookie.toString());
