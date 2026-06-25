@@ -56,12 +56,7 @@ public class BoardListService {
 
     public PageResponse<BoardListDto> findAll(UUID userId, UUID boardId, Pageable pageable) {
 
-        var boardDto = boardService.findById(boardId);
-
-        workspaceAuthorizationService.validateWorkspaceMember(
-            boardDto.getWorkspace().getWorkspaceId(),
-            userId
-        );
+        var boardDto = boardService.findById(userId, boardId);
 
         var page = repository.findByBoard_Id(boardId, pageable)
                 .map(BoardListDto::toDto);
