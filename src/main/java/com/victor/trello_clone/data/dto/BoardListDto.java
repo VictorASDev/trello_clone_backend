@@ -16,7 +16,7 @@ public class BoardListDto {
     private LocalDateTime updatedAt;
 
     @JsonIgnore
-    private Board board;
+    private BoardDto board;
     public BoardListDto() {
     }
 
@@ -29,7 +29,10 @@ public class BoardListDto {
         dto.setId(entity.getId());
         dto.setTitle(entity.getTitle());
         dto.setPosition(entity.getPosition());
-        dto.setBoard(entity.getBoard());
+        dto.setBoard(
+                new BoardDto().toDto(
+                        entity.getBoard()
+                ));
         dto.setCreatedAt(entity.getCreatedAt());
         dto.setUpdatedAt(entity.getUpdatedAt());
 
@@ -60,11 +63,11 @@ public class BoardListDto {
         this.position = position;
     }
 
-    public Board getBoard() {
+    public BoardDto getBoard() {
         return board;
     }
 
-    public void setBoard(Board board) {
+    public void setBoard(BoardDto board) {
         this.board = board;
     }
 
