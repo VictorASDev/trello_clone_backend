@@ -12,10 +12,11 @@ public class CardDto {
     private String title;
     private String description;
     private Long position;
-    @JsonIgnore
-    private BoardList list;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+
+    @JsonIgnore
+    private BoardListDto list;
 
     public Long getId() {
         return id;
@@ -49,11 +50,11 @@ public class CardDto {
         this.position = position;
     }
 
-    public BoardList getList() {
+    public BoardListDto getList() {
         return list;
     }
 
-    public void setList(BoardList list) {
+    public void setList(BoardListDto list) {
         this.list = list;
     }
 
@@ -91,7 +92,9 @@ public class CardDto {
         var dto = new CardDto();
 
         dto.setTitle(card.getTitle());
-        dto.setList(card.getList());
+        dto.setList(
+                BoardListDto.toDto(card.getList())
+        );
         dto.setId(card.getId());
         dto.setDescription(card.getDescription());
         dto.setCreatedAt(card.getCreatedAt());
