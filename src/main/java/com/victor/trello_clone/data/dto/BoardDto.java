@@ -16,7 +16,7 @@ public class BoardDto {
                     String backgroundColor,
                     LocalDateTime createdAt,
                     LocalDateTime updatedAt,
-                    Workspace workspace) {
+                    WorkspaceDto workspace) {
         this.id = id;
         this.name = name;
         this.description = description;
@@ -37,7 +37,7 @@ public class BoardDto {
     private LocalDateTime updatedAt;
 
     @JsonIgnore
-    private Workspace workspace;
+    private WorkspaceDto workspace;
 
     public UUID getId() {
         return id;
@@ -87,11 +87,11 @@ public class BoardDto {
         this.updatedAt = updatedAt;
     }
 
-    public Workspace getWorkspace() {
+    public WorkspaceDto getWorkspace() {
         return workspace;
     }
 
-    public void setWorkspace(Workspace workspace) {
+    public void setWorkspace(WorkspaceDto workspace) {
         this.workspace = workspace;
     }
 
@@ -114,7 +114,9 @@ public class BoardDto {
                 b.getBackgroundColor(),
                 b.getCreatedAt(),
                 b.getUpdatedAt(),
-                b.getWorkspace()
+                new WorkspaceDto().toDto(
+                        b.getWorkspace()
+                )
         );
     }
 }
