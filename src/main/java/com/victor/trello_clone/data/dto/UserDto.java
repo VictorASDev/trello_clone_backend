@@ -1,22 +1,32 @@
 package com.victor.trello_clone.data.dto;
 
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import com.victor.trello_clone.model.user.Role;
 import com.victor.trello_clone.model.user.User;
 
 import java.time.LocalDateTime;
 
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 
 @JsonPropertyOrder({"id", "email", "username", "createdAt", "updatedAt", "roles"})
 public class UserDto {
 
-    public UserDto(UUID id, String email, String username, LocalDateTime createdAt, LocalDateTime updatedAt) {
+    public UserDto(
+            UUID id,
+            String email,
+            String username,
+            LocalDateTime createdAt,
+            LocalDateTime updatedAt,
+            Set<Role> roles) {
         this.id = id;
         this.email = email;
         this.username = username;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
+        this.roles = roles;
     }
 
     public UserDto() {
@@ -27,6 +37,7 @@ public class UserDto {
     private String username;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private Set<Role> roles = new HashSet<>();
 
     public String getEmail() {
         return email;
@@ -68,6 +79,14 @@ public class UserDto {
         this.id = id;
     }
 
+    public Set<Role> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(Set<Role> roles) {
+        this.roles = roles;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (!(o instanceof UserDto userDto)) return false;
@@ -85,7 +104,8 @@ public class UserDto {
                 u.getEmail(),
                 u.getUsername(),
                 u.getCreatedAt(),
-                u.getUpdatedAt()
+                u.getUpdatedAt(),
+                u.getRoles()
         );
     }
 }
