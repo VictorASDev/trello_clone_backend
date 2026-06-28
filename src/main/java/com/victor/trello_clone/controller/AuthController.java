@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.security.auth.login.CredentialException;
 import java.time.Duration;
 import java.util.Map;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -127,11 +128,21 @@ public class AuthController {
                         "Se o email existir, enviaremos instruções."));
     }
 
-
     @PatchMapping("/send/validation")
     public ResponseEntity<Void> validateEmailToken(@RequestBody TokenRequest request) {
         emailService.validateEmail(request.token());
 
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<UserDto> findUser(
+            @AuthenticationPrincipal Jwt jwt
+    ) {
+        return ResponseEntity.ok(
+                new UserDto().toDto(
+                        userService.findById(UUID.fromString(jwt.getSubject()))
+                )
+        );
     }
 }
