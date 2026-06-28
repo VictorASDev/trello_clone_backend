@@ -7,7 +7,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
 public interface CardRepository extends JpaRepository<Card, Long> {
@@ -21,4 +23,13 @@ public interface CardRepository extends JpaRepository<Card, Long> {
         where c.list.id = :listId
     """)
     Long findMaxPositionByListId(Long listId);
+
+    @Query("""
+        select c
+        from Card c
+        join fetch c.list l
+        where l.board.id = :boardId
+        order by l.position, c.position
+    """)
+    List<Card> findByBoardId(UUID boardId);
 }

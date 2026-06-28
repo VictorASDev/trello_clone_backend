@@ -10,6 +10,7 @@ import com.victor.trello_clone.model.workspace.WorkspaceRole;
 import com.victor.trello_clone.repository.BoardRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
@@ -100,11 +101,18 @@ public class BoardService {
         repository.save(board);
     }
 
-    public BoardDto findById(UUID boardId) {
-        return new BoardDto().toDto(
-                repository.findById(boardId)
-                .orElseThrow(() -> new EntityNotFoundException("Board not found!"))
+    public BoardDto findById(UUID userId, UUID boardId) {
+
+        var board = repository.findById(boardId)
+                .orElseThrow(() -> new EntityNotFoundException("Board not found!"));
+
+        workspaceAuthorizationService.validateWorkspaceMember(
+                board.getWorkspace().getWorkspaceId(),
+                userId
         );
+
+
+        return new BoardDto().toDto(board);
     }
 
     public Board findEntityById(UUID boardId) {

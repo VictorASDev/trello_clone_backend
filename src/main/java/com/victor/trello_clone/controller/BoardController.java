@@ -1,10 +1,12 @@
 package com.victor.trello_clone.controller;
 
 import com.victor.trello_clone.data.dto.BoardDto;
+import com.victor.trello_clone.data.dto.BoardViewDto;
 import com.victor.trello_clone.data.dto.PageResponse;
 import com.victor.trello_clone.data.record.CreateBoardRequest;
 import com.victor.trello_clone.data.record.UpdateBoardRequest;
 import com.victor.trello_clone.service.BoardService;
+import com.victor.trello_clone.service.BoardViewService;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -21,9 +23,11 @@ import java.util.UUID;
 public class BoardController {
 
     private final BoardService service;
+    private final BoardViewService boardViewService;
 
-    public BoardController(BoardService service) {
+    public BoardController(BoardService service, BoardViewService boardViewService) {
         this.service = service;
+        this.boardViewService = boardViewService;
     }
 
     @GetMapping
@@ -42,6 +46,32 @@ public class BoardController {
                         UUID.fromString(jwt.getSubject()),
                         UUID.fromString(workspaceId),
                         pageable
+                )
+        );
+    }
+
+    @GetMapping("/{boardId}")
+    public ResponseEntity<BoardDto> findById(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable UUID boardId
+    ) {
+        return ResponseEntity.ok(
+                service.findById(
+                        UUID.fromString(jwt.getSubject()),
+                        boardId
+                )
+        );
+    }
+
+    @GetMapping("/{boardId}/view")
+    public ResponseEntity<BoardViewDto> getBoardView(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable UUID boardId
+    ) {
+        return ResponseEntity.ok(
+                boardViewService.getBoardView(
+                        UUID.fromString(jwt.getSubject()),
+                        boardId
                 )
         );
     }

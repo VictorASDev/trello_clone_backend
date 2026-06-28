@@ -1,11 +1,13 @@
 package com.victor.trello_clone.data.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.victor.trello_clone.model.boardList.BoardList;
 import com.victor.trello_clone.model.card.Card;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
+@JsonPropertyOrder({"id", "title", "description", "position", "createdAt", "updatedAt"})
 public class CardDto {
 
     private Long id;
