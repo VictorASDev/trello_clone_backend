@@ -74,7 +74,7 @@ public class EmailService {
 
         String token = generateEmailToken(userEmail);
 
-        String verificationUrl = frontendUrl + "/email-verified?token=" + token;
+        String verificationUrl = frontendUrl + "/confirm-email?token=" + token;
 
         String body = buildVerificationEmail(user.getUsername(), verificationUrl);
 
