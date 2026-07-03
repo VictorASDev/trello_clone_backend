@@ -13,7 +13,7 @@ security:
     public:
       key: ${JWT_PUBLIC_KEY}
 server:
-  port: ${PORT:8080}
+  port: ${PORT}
 spring:
   application:
     name: trello-clone
