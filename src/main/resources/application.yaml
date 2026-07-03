@@ -1,8 +1,8 @@
 app:
   frontend:
-    url: http://localhost:3000
+    url: https://trello-clone-victor.vercel.app
 cors:
-  originPatterns: http://localhost:8080,http://localhost:3000
+  originPatterns: https://trello-clone-frontend-prod.onrender.com,http://localhost:3000,https://trello-clone-victor.vercel.app
 logging:
   level:
     org.springframework.security: DEBUG

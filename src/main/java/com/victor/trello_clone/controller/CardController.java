@@ -3,6 +3,7 @@ package com.victor.trello_clone.controller;
 import com.victor.trello_clone.data.dto.CardDto;
 import com.victor.trello_clone.data.dto.PageResponse;
 import com.victor.trello_clone.data.record.CreateCardRequest;
+import com.victor.trello_clone.data.record.MoveCardRequest;
 import com.victor.trello_clone.data.record.UpdateCardRequest;
 import com.victor.trello_clone.service.CardService;
 import jakarta.validation.Valid;
@@ -107,6 +108,23 @@ public class CardController {
                 UUID.fromString(jwt.getSubject()),
                 Long.parseLong(listId),
                 Long.parseLong(cardId)
+        );
+
+        return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{cardId}/move")
+    public ResponseEntity<Void> moveCard(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable("listId") String listId,
+            @PathVariable("cardId") String cardId,
+            @RequestBody MoveCardRequest request) {
+
+        service.moveCard(
+                UUID.fromString(jwt.getSubject()),
+                Long.parseLong(listId),
+                Long.parseLong(cardId),
+                request
         );
 
         return ResponseEntity.noContent().build();

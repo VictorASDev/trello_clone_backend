@@ -109,4 +109,5 @@ public class BoardListController {
         );
         return ResponseEntity.noContent().build();
     }
+
 }

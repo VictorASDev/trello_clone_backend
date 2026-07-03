@@ -3,6 +3,7 @@ package com.victor.trello_clone.service;
 import com.victor.trello_clone.data.dto.CardDto;
 import com.victor.trello_clone.data.dto.PageResponse;
 import com.victor.trello_clone.data.record.CreateCardRequest;
+import com.victor.trello_clone.data.record.MoveCardRequest;
 import com.victor.trello_clone.data.record.UpdateCardRequest;
 import com.victor.trello_clone.model.card.Card;
 import com.victor.trello_clone.repository.CardRepository;
@@ -113,5 +114,20 @@ public class CardService {
         return repository.findByIdAndList_Id(cardId, listId)
                 .orElseThrow(() ->
                         new EntityNotFoundException("Card not found"));
+    }
+
+    public void moveCard(UUID userId, Long listId, Long cardId, MoveCardRequest request) {
+        var card = findEntityById(listId, cardId);
+        var newList = boardListService.findEntityById(request.targetListId());
+
+        workspaceAuthorizationService.validateWorkspaceMember(
+                card.getList().getBoard().getWorkspace().getWorkspaceId(),
+                userId
+        );
+
+        card.setList(newList);
+        card.setPosition(request.position());
+
+        repository.save(card);
     }
 }
