@@ -44,7 +44,7 @@ public class UserService {
         user.setPassword(encoder.encode(request.password()));
         user.setUsername(request.username());
         user.setRoles(Set.of(Role.USER));
-
+        user.setEmailVerified(true);
         repository.save(user);
     }
 
