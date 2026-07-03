@@ -114,6 +114,6 @@ public class AuthService {
 
     public void signUp(SignUpRequest request) {
         userService.create(request);
-        emailService.sendVerificationEmailAsync(request.email());
+        //emailService.sendVerificationEmailAsync(request.email());
     }
 }
