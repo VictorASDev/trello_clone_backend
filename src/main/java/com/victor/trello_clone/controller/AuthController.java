@@ -1,5 +1,6 @@
 package com.victor.trello_clone.controller;
 
+import com.victor.trello_clone.controller.docs.AuthControllerDocs;
 import com.victor.trello_clone.data.dto.UserDto;
 import com.victor.trello_clone.data.record.*;
 import com.victor.trello_clone.mail.EmailService;
@@ -20,7 +21,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/auth")
-public class AuthController {
+public class AuthController implements AuthControllerDocs {
 
     private final AuthService authService;
     private final EmailService emailService;
@@ -33,6 +34,7 @@ public class AuthController {
     }
 
     @PostMapping("/signup")
+    @Override
     public ResponseEntity<Void> signUp(@RequestBody SignUpRequest request) {
         authService.signUp(request);
 
@@ -40,6 +42,7 @@ public class AuthController {
     }
 
     @PostMapping("/signin")
+    @Override
     public ResponseEntity<UserDto> signIn(
             @RequestBody AuthRequest request,
             HttpServletResponse response) throws CredentialException {
@@ -73,6 +76,7 @@ public class AuthController {
     }
 
     @PostMapping("/refresh")
+    @Override
     public ResponseEntity<Void> refreshToken(
             @CookieValue(value = "refresh_token") String refreshToken,
             HttpServletResponse response) {
@@ -94,6 +98,7 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
+    @Override
     public ResponseEntity<Void> logout(HttpServletResponse response) {
 
         ResponseCookie refreshCookie = ResponseCookie.from("refresh_token", "")
@@ -119,6 +124,7 @@ public class AuthController {
     }
 
     @PostMapping("/send/token")
+    @Override
     public ResponseEntity<?> sendVerification(@RequestBody ValidateEmailRequest req) {
 
         emailService.sendVerificationEmailAsync(req.userEmail());
@@ -129,6 +135,7 @@ public class AuthController {
     }
 
     @PatchMapping("/send/validation")
+    @Override
     public ResponseEntity<Void> validateEmailToken(@RequestBody TokenRequest request) {
         emailService.validateEmail(request.token());
 
@@ -136,6 +143,7 @@ public class AuthController {
     }
 
     @GetMapping("/me")
+    @Override
     public ResponseEntity<UserDto> findUser(
             @AuthenticationPrincipal Jwt jwt
     ) {

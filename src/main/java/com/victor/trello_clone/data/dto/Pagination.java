@@ -1,12 +1,21 @@
 package com.victor.trello_clone.data.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 import java.util.Objects;
 
 public class Pagination {
 
+    @Schema(example = "0")
     private int page;
+
+    @Schema(example = "10")
     private int size;
+
+    @Schema(example = "35")
     private long totalElements;
+
+    @Schema(example = "4")
     private int totalPages;
 
     public Pagination(int page, int size, long totalElements, int totalPages) {
