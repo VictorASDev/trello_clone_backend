@@ -1,12 +1,16 @@
 package com.victor.trello_clone.data.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.data.domain.Page;
 
 import java.util.List;
 
 public class PageResponse<T> {
 
+    @Schema(description = "List of returned items")
     private List<T> data;
+
+    @Schema(description = "Pagination metadata")
     private Pagination pagination;
 
     public PageResponse(Page<T> page) {

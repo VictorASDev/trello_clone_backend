@@ -1,5 +1,6 @@
 package com.victor.trello_clone.controller;
 
+import com.victor.trello_clone.controller.docs.BoardControllerDocs;
 import com.victor.trello_clone.data.dto.BoardDto;
 import com.victor.trello_clone.data.dto.BoardViewDto;
 import com.victor.trello_clone.data.dto.PageResponse;
@@ -20,7 +21,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/workspaces/{workspaceId}/boards")
-public class BoardController {
+public class BoardController implements BoardControllerDocs {
 
     private final BoardService service;
     private final BoardViewService boardViewService;
@@ -31,6 +32,7 @@ public class BoardController {
     }
 
     @GetMapping
+    @Override
     public ResponseEntity<PageResponse<BoardDto>> findAll(
             @AuthenticationPrincipal Jwt jwt,
             @RequestParam(value = "page", defaultValue = "0") Integer page,
@@ -51,6 +53,7 @@ public class BoardController {
     }
 
     @GetMapping("/{boardId}")
+    @Override
     public ResponseEntity<BoardDto> findById(
             @AuthenticationPrincipal Jwt jwt,
             @PathVariable UUID boardId
@@ -64,6 +67,7 @@ public class BoardController {
     }
 
     @GetMapping("/{boardId}/view")
+    @Override
     public ResponseEntity<BoardViewDto> getBoardView(
             @AuthenticationPrincipal Jwt jwt,
             @PathVariable UUID boardId
@@ -77,6 +81,7 @@ public class BoardController {
     }
 
     @PostMapping
+    @Override
     public ResponseEntity<BoardDto> createBoard(
             @AuthenticationPrincipal Jwt jwt,
             @PathVariable("workspaceId") String workspaceId,
@@ -99,6 +104,7 @@ public class BoardController {
     }
 
     @DeleteMapping("/{boardId}")
+    @Override
     public ResponseEntity<Void> deleteBoard(
             @AuthenticationPrincipal Jwt jwt,
             @PathVariable("boardId") String boardId
@@ -113,6 +119,7 @@ public class BoardController {
     }
 
     @PutMapping("/{boardId}")
+    @Override
     public ResponseEntity<Void> updateBoard(
             @AuthenticationPrincipal Jwt jwt,
             @PathVariable("boardId") String boardId,

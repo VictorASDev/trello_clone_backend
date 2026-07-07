@@ -1,5 +1,6 @@
 package com.victor.trello_clone.controller;
 
+import com.victor.trello_clone.controller.docs.BoardListControllerDocs;
 import com.victor.trello_clone.data.dto.BoardListDto;
 import com.victor.trello_clone.data.dto.PageResponse;
 import com.victor.trello_clone.data.record.CreateBoardListRequest;
@@ -18,7 +19,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/boards/{boardId}/lists")
-public class BoardListController {
+public class BoardListController implements BoardListControllerDocs {
 
     private final BoardListService service;
 
@@ -27,6 +28,7 @@ public class BoardListController {
     }
 
     @GetMapping
+    @Override
     public ResponseEntity<PageResponse<BoardListDto>> findAll(
             @AuthenticationPrincipal Jwt jwt,
             @PathVariable("boardId") String boardId,
@@ -45,6 +47,7 @@ public class BoardListController {
     }
 
     @GetMapping("/{listId}")
+    @Override
     public ResponseEntity<BoardListDto> findById(
             @AuthenticationPrincipal Jwt jwt,
             @PathVariable("boardId") String boardId,
@@ -58,6 +61,7 @@ public class BoardListController {
     }
 
     @PostMapping
+    @Override
     public ResponseEntity<BoardListDto> createList(
             @AuthenticationPrincipal Jwt jwt,
             @PathVariable("boardId") String boardId,
@@ -80,6 +84,7 @@ public class BoardListController {
     }
 
     @PutMapping("/{listId}")
+    @Override
     public ResponseEntity<BoardListDto> updateBoardList(
             @AuthenticationPrincipal Jwt jwt,
             @PathVariable("boardId") String boardId,
@@ -97,6 +102,7 @@ public class BoardListController {
     }
 
     @DeleteMapping("/{listId}")
+    @Override
     public ResponseEntity<Void> deleteBoardList(
             @AuthenticationPrincipal Jwt jwt,
             @PathVariable("boardId") String boardId,

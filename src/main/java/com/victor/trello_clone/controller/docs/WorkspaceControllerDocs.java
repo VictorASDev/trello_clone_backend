@@ -1,5 +1,6 @@
 package com.victor.trello_clone.controller.docs;
 
+import com.victor.trello_clone.data.dto.BoardDto;
 import com.victor.trello_clone.data.dto.PageResponse;
 import com.victor.trello_clone.data.dto.WorkspaceMemberDto;
 import com.victor.trello_clone.data.dto.WorkspaceDto;
@@ -7,9 +8,13 @@ import com.victor.trello_clone.data.record.SendInvitationRequest;
 import com.victor.trello_clone.data.record.TokenRequest;
 import com.victor.trello_clone.data.record.WorkspaceRequest;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.hibernate.annotations.Array;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.jwt.Jwt;
 
@@ -26,7 +31,15 @@ public interface WorkspaceControllerDocs {
             summary = "List all user workspaces",
             description = "Returns a paginated list of all workspaces accessible by the authenticated user.",
             responses = {
-                    @ApiResponse(responseCode = "200", description = "Success", content = @Content),
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "Success",
+                            content = {
+                                    @Content(
+                                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                            schema = @Schema(implementation = PageResponse.class)
+                                    )
+                            }),
                     @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content),
                     @ApiResponse(responseCode = "500", description = "Internal Server Error", content = @Content)
             }
@@ -42,7 +55,16 @@ public interface WorkspaceControllerDocs {
             summary = "Find workspace by id",
             description = "Returns a workspace if the authenticated user has access to it.",
             responses = {
-                    @ApiResponse(responseCode = "200", description = "Success", content = @Content),
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "Success",
+                            content = {
+                                    @Content(
+                                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                            schema = @Schema(implementation = WorkspaceDto.class)
+                                    )
+                                }
+                            ),
                     @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content),
                     @ApiResponse(responseCode = "403", description = "Forbidden", content = @Content),
                     @ApiResponse(responseCode = "404", description = "Workspace Not Found", content = @Content),
@@ -55,7 +77,17 @@ public interface WorkspaceControllerDocs {
             summary = "List workspace members",
             description = "Returns all members belonging to a workspace accessible by the authenticated user.",
             responses = {
-                    @ApiResponse(responseCode = "200", description = "Success", content = @Content),
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "Success",
+                            content = {
+                                    @Content(
+                                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                            array = @ArraySchema(
+                                                schema = @Schema(implementation = WorkspaceDto.class)
+                                            )
+                                    ),
+                            }),
                     @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content),
                     @ApiResponse(responseCode = "403", description = "Forbidden", content = @Content),
                     @ApiResponse(responseCode = "404", description = "Workspace Not Found", content = @Content),
@@ -102,7 +134,15 @@ public interface WorkspaceControllerDocs {
             summary = "Update workspace name",
             description = "Updates the name of an existing workspace.",
             responses = {
-                    @ApiResponse(responseCode = "200", description = "Workspace Updated", content = @Content),
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "Workspace Updated",
+                            content = {
+                                    @Content(
+                                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                            schema = @Schema(implementation = WorkspaceDto.class)
+                                    ),
+                            }),
                     @ApiResponse(responseCode = "400", description = "Bad Request", content = @Content),
                     @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content),
                     @ApiResponse(responseCode = "403", description = "Forbidden", content = @Content),
@@ -120,7 +160,15 @@ public interface WorkspaceControllerDocs {
             summary = "Create workspace",
             description = "Creates a new workspace for the authenticated user.",
             responses = {
-                    @ApiResponse(responseCode = "200", description = "Workspace Created", content = @Content),
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "Workspace Created",
+                            content = {
+                                    @Content(
+                                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                            schema = @Schema(implementation = WorkspaceDto.class)
+                                    ),
+                            }),
                     @ApiResponse(responseCode = "400", description = "Bad Request", content = @Content),
                     @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content),
                     @ApiResponse(responseCode = "500", description = "Internal Server Error", content = @Content)

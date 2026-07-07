@@ -1,5 +1,6 @@
 package com.victor.trello_clone.controller;
 
+import com.victor.trello_clone.controller.docs.CardControllerDocs;
 import com.victor.trello_clone.data.dto.CardDto;
 import com.victor.trello_clone.data.dto.PageResponse;
 import com.victor.trello_clone.data.record.CreateCardRequest;
@@ -20,7 +21,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/lists/{listId}/cards")
-public class CardController {
+public class CardController implements CardControllerDocs {
 
     private final CardService service;
 
@@ -29,6 +30,7 @@ public class CardController {
     }
 
     @GetMapping
+    @Override
     public ResponseEntity<PageResponse<CardDto>> findAll(
             @AuthenticationPrincipal Jwt jwt,
             @PathVariable("listId") String listId,
@@ -47,6 +49,7 @@ public class CardController {
     }
 
     @GetMapping("/{cardId}")
+    @Override
     public ResponseEntity<CardDto> findById(
             @AuthenticationPrincipal Jwt jwt,
             @PathVariable("listId") String listId,
@@ -60,6 +63,7 @@ public class CardController {
     }
 
     @PostMapping
+    @Override
     public ResponseEntity<CardDto> createCard(
             @AuthenticationPrincipal Jwt jwt,
             @PathVariable("listId") String listId,
@@ -82,6 +86,7 @@ public class CardController {
     }
 
     @PutMapping("/{cardId}")
+    @Override
     public ResponseEntity<CardDto> updateBoardList(
             @AuthenticationPrincipal Jwt jwt,
             @PathVariable("listId") String listId,
@@ -99,6 +104,7 @@ public class CardController {
     }
 
     @DeleteMapping("/{cardId}")
+    @Override
     public ResponseEntity<Void> deleteBoardList(
             @AuthenticationPrincipal Jwt jwt,
             @PathVariable("listId") String listId,
@@ -114,6 +120,7 @@ public class CardController {
     }
 
     @PatchMapping("/{cardId}/move")
+    @Override
     public ResponseEntity<Void> moveCard(
             @AuthenticationPrincipal Jwt jwt,
             @PathVariable("listId") String listId,
